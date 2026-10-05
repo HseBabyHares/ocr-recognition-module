@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "views": [
+    {
+      "id": "system-context",
+      "type": "c4-system-context",
+      "source": "architecture/model/workspace.dsl"
+    },
+    {
+      "id": "container",
+      "type": "c4-container",
+      "source": "architecture/model/workspace.dsl"
+    }
+  ]
+}

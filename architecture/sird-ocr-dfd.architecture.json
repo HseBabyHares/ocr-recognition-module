@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SIRD OCR Threat Model Data Flow Diagram",
+    "output": "architecture/rendered/sird-ocr-dfd.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "trust-boundaries",
+        "label": "Trust boundaries",
+        "focus": [
+          "sird",
+          "task",
+          "kafka",
+          "process",
+          "ocr",
+          "postgres",
+          "rustfs",
+          "spire"
+        ],
+        "note": "Flows between the external SIRD backend, integration runtime, data stores, and identity plane."
+      },
+      {
+        "id": "task-dataflow",
+        "label": "Task data flow",
+        "focus": [
+          "sird",
+          "task",
+          "kafka",
+          "process",
+          "ocr"
+        ],
+        "note": "Task metadata and bounded document capability flow through the processing boundary."
+      },
+      {
+        "id": "result-dataflow",
+        "label": "Result and DLQ flow",
+        "focus": [
+          "process",
+          "postgres",
+          "kafka",
+          "sird"
+        ],
+        "note": "Durable terminal state precedes broker acknowledgement and source offset commit."
+      },
+      {
+        "id": "identity-dataflow",
+        "label": "Identity flow",
+        "focus": [
+          "spire",
+          "task",
+          "process",
+          "kafka"
+        ],
+        "note": "Identity metadata is a production target; the local profile uses mTLS credentials."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "sird",
+      "type": "external",
+      "label": "SIRD Backend",
+      "sublabel": "caller",
+      "tag": "external zone",
+      "pos": [
+        40,
+        280
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "task",
+      "type": "backend",
+      "label": "Task Service",
+      "sublabel": "task + idempotency",
+      "tag": "application zone",
+      "pos": [
+        260,
+        280
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka 4.3.1",
+      "sublabel": "task / result / DLQ",
+      "tag": "data zone",
+      "pos": [
+        480,
+        280
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "process",
+      "type": "backend",
+      "label": "Process Service",
+      "sublabel": "claim + OCR + outbox",
+      "tag": "application zone",
+      "pos": [
+        710,
+        280
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "ocr",
+      "type": "backend",
+      "label": "OCR Runtime",
+      "sublabel": "stateless decoder",
+      "tag": "application zone",
+      "pos": [
+        950,
+        280
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL 17",
+      "sublabel": "attempts + outboxes",
+      "tag": "data zone",
+      "pos": [
+        710,
+        450
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "rustfs",
+      "type": "cloud",
+      "label": "RustFS 1.0.0",
+      "sublabel": "bounded artifacts",
+      "tag": "data zone",
+      "pos": [
+        950,
+        450
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "spire",
+      "type": "security",
+      "label": "SPIFFE / SPIRE",
+      "sublabel": "identity target",
+      "tag": "identity zone",
+      "pos": [
+        260,
+        90
+      ],
+      "size": [
+        190,
+        76
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "External trust boundary",
+      "wraps": [
+        "sird"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Application trust zone",
+      "wraps": [
+        "task",
+        "process",
+        "ocr"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Data trust zone",
+      "wraps": [
+        "kafka",
+        "postgres",
+        "rustfs"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Identity trust zone",
+      "wraps": [
+        "spire"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "sird-task",
+      "from": "sird",
+      "to": "task",
+      "label": "task request / status result",
+      "variant": "emphasis",
+      "labelDy": -60
+    },
+    {
+      "id": "task-sird",
+      "from": "task",
+      "to": "sird",
+      "label": "status / result response",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          355,
+          400
+        ],
+        [
+          130,
+          400
+        ]
+      ],
+      "labelDy": 74
+    },
+    {
+      "id": "task-kafka",
+      "from": "task",
+      "to": "kafka",
+      "label": "durable task outbox",
+      "variant": "dashed",
+      "labelDy": -60
+    },
+    {
+      "id": "kafka-process",
+      "from": "kafka",
+      "to": "process",
+      "label": "task event + offset",
+      "variant": "emphasis",
+      "labelDy": -60
+    },
+    {
+      "id": "process-ocr",
+      "from": "process",
+      "to": "ocr",
+      "label": "bounded OCR context",
+      "variant": "emphasis",
+      "labelDy": -60
+    },
+    {
+      "id": "process-db",
+      "from": "process",
+      "to": "postgres",
+      "label": "attempt + terminal state",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 50,
+      "labelDx": -70
+    },
+    {
+      "id": "process-rustfs",
+      "from": "process",
+      "to": "rustfs",
+      "label": "capability-bound artifact",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 50,
+      "labelDx": 80
+    },
+    {
+      "id": "process-kafka",
+      "from": "process",
+      "to": "kafka",
+      "label": "result / DLQ publication",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          810,
+          210
+        ],
+        [
+          580,
+          210
+        ]
+      ],
+      "labelDy": -24
+    },
+    {
+      "id": "spire-task",
+      "from": "spire",
+      "to": "task",
+      "label": "SVID + trust bundle",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 20,
+      "labelDx": -100
+    },
+    {
+      "id": "spire-process",
+      "from": "spire",
+      "to": "process",
+      "label": "role identity",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": -35,
+      "labelDx": 90
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Trust boundaries",
+      "items": [
+        "External SIRD caller enters Task Service",
+        "Application services cross into Kafka, PostgreSQL, and RustFS",
+        "Identity plane is a target boundary, not deployed SPIRE evidence"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "STRIDE anchors",
+      "items": [
+        "Identity and authorization flows anchor spoofing and elevation threats",
+        "Outboxes and fencing anchor tampering and repudiation threats",
+        "Capability-bound artifacts and bounded OCR anchor disclosure and denial-of-service threats"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Open evidence",
+      "items": [
+        "Production transport, SPIRE issuance, Kafka ACL mapping, sandbox, and retention cleanup remain unverified"
+      ]
+    }
+  ]
+}

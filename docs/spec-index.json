@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "status": "template-unconfigured",
+  "owner": "REPLACE",
+  "watchedImplementationRoots": [
+    "src/**",
+    "app/**",
+    "services/**",
+    "packages/**",
+    "infra/**"
+  ],
+  "entries": [],
+  "instructions": "Map implementation paths to authoritative specifications, architecture views, and verification sources; set status=active after human review."
+}

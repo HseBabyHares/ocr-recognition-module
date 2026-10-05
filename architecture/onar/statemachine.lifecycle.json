@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "IDRS Task State Machine",
+    "output": "architecture/onar/rendered/statemachine.html",
+    "quality_profile": "showcase",
+    "viewBox": [980, 566],
+    "views": [
+      { "id": "happy-path", "label": "Happy path", "focus": ["null", "pending", "parsing", "recognized"], "note": "NULL → PENDING → PARSING → RECOGNIZED; ERROR is a terminal outcome." },
+      { "id": "proposal", "label": "Proposal delta", "focus": ["pending", "parsing", "error"], "note": "Current OpenSpec keeps durable OCR jobs outside the OCR module; this target proposes otherwise." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Task lifecycle" },
+    { "id": "terminal", "label": "Terminal outcomes" }
+  ],
+  "states": [
+    { "id": "null", "type": "start", "label": "NULL", "sublabel": "not registered", "lane": "main", "col": 0, "step": "01", "tag": "entry" },
+    { "id": "pending", "type": "waiting", "label": "PENDING", "sublabel": "waiting for worker", "lane": "main", "col": 1, "step": "02", "tag": "durable" },
+    { "id": "parsing", "type": "active", "label": "PARSING", "sublabel": "preprocess + recognize", "lane": "main", "col": 2, "step": "03", "tag": "running" },
+    { "id": "recognized", "type": "success", "label": "RECOGNIZED", "sublabel": "result available", "lane": "main", "col": 4, "step": "04", "tag": "terminal" },
+    { "id": "error", "type": "failure", "label": "ERROR", "sublabel": "terminal failure", "lane": "terminal", "col": 0, "yOffset": -70, "tag": "terminal" }
+  ],
+  "transitions": [
+    { "id": "register", "from": "null", "to": "pending", "route": "straight" },
+    { "id": "claim", "from": "pending", "to": "parsing", "route": "straight" },
+    { "id": "success", "from": "parsing", "to": "recognized", "route": "straight" },
+    { "id": "terminal-error", "from": "parsing", "to": "error", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" }
+  ]
+}

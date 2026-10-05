@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0",
+  "status": "template-unconfigured",
+  "profile": "network-service",
+  "watchedImplementationRoots": [
+    "src/**",
+    "app/**",
+    "services/**",
+    "packages/**",
+    "infra/**"
+  ],
+  "requiredViews": [
+    "system-context",
+    "container"
+  ],
+  "conditionalViews": [
+    {
+      "when": [
+        "infra/**",
+        ".github/workflows/**"
+      ],
+      "require": [
+        "deployment"
+      ]
+    },
+    {
+      "when": [
+        "**/auth/**",
+        "**/payments/**",
+        "**/contracts/**"
+      ],
+      "require": [
+        "sequence"
+      ]
+    },
+    {
+      "when": [
+        "**/models/**",
+        "**/migrations/**"
+      ],
+      "require": [
+        "data-model"
+      ]
+    },
+    {
+      "when": [
+        "**/state/**"
+      ],
+      "require": [
+        "state"
+      ]
+    }
+  ],
+  "requiredFiles": [
+    "architecture/component-registry.json",
+    "architecture/model/workspace.dsl",
+    "security/threat-model/dfd.json",
+    "security/threat-model/stride-coverage.json",
+    "security/threat-model/threats.json"
+  ],
+  "architectureArtifactGlobs": [
+    "architecture/**",
+    "security/threat-model/**"
+  ],
+  "humanOwned": [
+    "architecture/policy.json",
+    "architecture/decisions/**",
+    "security/threat-model/exceptions/**"
+  ]
+}

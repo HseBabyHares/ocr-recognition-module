@@ -37,7 +37,7 @@ quote-style = "double"
 
 [tool.ty.environment]
 python-version = "3.14"
-python = "integration/.venv"
+python = ".venv"
 root = [
     "src",
     "tests",

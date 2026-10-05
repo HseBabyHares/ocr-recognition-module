@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDRS Containers — Proposed Async OCR Module",
+    "output": "architecture/onar/rendered/containers.html",
+    "quality_profile": "showcase",
+    "viewBox": [1390, 684],
+    "views": [
+      { "id": "task-path", "label": "Task path", "focus": ["consumer", "gateway", "task", "bus", "preprocess", "ocr"], "note": "The gRPC facade accepts work while the internal pipeline runs asynchronously." },
+      { "id": "durability", "label": "Durability", "focus": ["task", "postgres", "objectstore", "bus"], "note": "Task state, artifacts, event identity, and result delivery need explicit ownership." },
+      { "id": "observability", "label": "Observability", "focus": ["preprocess", "ocr", "otel", "telemetry", "grafana"], "note": "Workers emit redacted OTLP data to one collector and operator backend." }
+    ]
+  },
+  "components": [
+    { "id": "consumer", "type": "frontend", "label": "HSE Application", "sublabel": "consumer client", "tag": "external", "pos": [30, 300], "size": [170, 76] },
+    { "id": "gateway", "type": "cloud", "label": "gRPC Gateway", "sublabel": "SubmitTask / status / result", "tag": "proposed facade", "pos": [240, 300], "size": [200, 82] },
+    { "id": "task", "type": "backend", "label": "Task Service", "sublabel": "durable owner + outbox", "tag": "proposed owner", "pos": [480, 300], "size": [210, 82] },
+    { "id": "bus", "type": "messagebus", "label": "Message Bus", "sublabel": "RabbitMQ / Kafka TBD", "tag": "async transport", "pos": [730, 300], "size": [180, 82] },
+    { "id": "preprocess", "type": "backend", "label": "Simplify Service", "sublabel": "validate + preprocess", "tag": "worker", "pos": [960, 170], "size": [160, 82] },
+    { "id": "ocr", "type": "backend", "label": "OCR Service", "sublabel": "bounded Recognize", "tag": "worker", "pos": [960, 400], "size": [160, 82] },
+    { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "task state + idempotency", "tag": "state owner", "pos": [480, 500], "size": [210, 82] },
+    { "id": "objectstore", "type": "cloud", "label": "S3 / Minio", "sublabel": "private objects", "tag": "refs only in events", "pos": [730, 500], "size": [200, 82] },
+    { "id": "keycloak", "type": "security", "label": "Keycloak", "sublabel": "OIDC + client credentials", "tag": "identity", "pos": [260, 100], "size": [200, 76] },
+    { "id": "otel", "type": "cloud", "label": "OTEL Collector", "sublabel": "OTLP + redact", "tag": "proposed runtime", "pos": [1160, 240], "size": [160, 96] },
+    { "id": "telemetry", "type": "database", "label": "Telemetry Backends", "sublabel": "Prometheus/Loki/traces", "tag": "retention required", "pos": [1160, 400], "size": [160, 76] },
+    { "id": "grafana", "type": "frontend", "label": "Grafana", "sublabel": "operator dashboards", "tag": "read-only view", "pos": [1160, 520], "size": [160, 76] }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "IDRS runtime", "wraps": ["gateway", "task", "bus", "preprocess", "ocr", "postgres", "objectstore", "otel", "telemetry", "grafana"] },
+    { "kind": "security-group", "label": "Identity", "wraps": ["keycloak"] }
+  ],
+  "connections": [
+    { "id": "consumer-gateway", "from": "consumer", "to": "gateway", "variant": "emphasis" },
+    { "id": "gateway-task", "from": "gateway", "to": "task", "variant": "security" },
+    { "id": "task-bus", "from": "task", "to": "bus", "variant": "dashed", "fromSide": "top", "toSide": "top", "via": [[585, 250], [820, 250]] },
+    { "id": "bus-preprocess", "from": "bus", "to": "preprocess", "variant": "emphasis", "fromSide": "right", "toSide": "left", "via": [[920, 341], [920, 211]] },
+    { "id": "preprocess-bus", "from": "preprocess", "to": "bus", "variant": "dashed", "fromSide": "left", "toSide": "right" },
+    { "id": "bus-ocr", "from": "bus", "to": "ocr", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "ocr-bus", "from": "ocr", "to": "bus", "variant": "dashed", "fromSide": "left", "toSide": "bottom", "via": [[900, 441], [900, 410], [820, 410]] },
+    { "id": "bus-task", "from": "bus", "to": "task", "variant": "dashed", "fromSide": "left", "toSide": "right" },
+    { "id": "task-postgres", "from": "task", "to": "postgres", "variant": "default" },
+    { "id": "task-objectstore", "from": "task", "to": "objectstore", "variant": "dashed" },
+    { "id": "keycloak-gateway", "from": "keycloak", "to": "gateway", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "preprocess-otel", "from": "preprocess", "to": "otel", "variant": "dashed", "fromSide": "right", "toSide": "left", "via": [[1130, 211], [1130, 288]] },
+    { "id": "ocr-otel", "from": "ocr", "to": "otel", "variant": "dashed", "fromSide": "right", "toSide": "top", "via": [[1128, 441], [1128, 200], [1240, 200]] },
+    { "id": "otel-telemetry", "from": "otel", "to": "telemetry", "variant": "emphasis" },
+    { "id": "telemetry-grafana", "from": "telemetry", "to": "grafana", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Proposed async boundary", "items": ["Task Service owns durable task state inside the OCR module", "Polling uses gRPC GetStatus and GetResult", "OCR Service keeps bounded Recognize execution"] },
+    { "dot": "emerald", "title": "Event contract required", "items": ["Events carry schema_version, event_id, request_id, attempt_id, and traceparent", "Preprocess and OCR publish result/error events back through the bus", "Outbox/inbox processing makes redelivery safe"] },
+    { "dot": "rose", "title": "Change relative to current OpenSpec", "items": ["Current OpenSpec declares unary Recognize and no durable OCR jobs", "This diagram proposes Task Service and polling inside the module", "RabbitMQ Streams versus Kafka remains a decision to reconcile"] }
+  ]
+}

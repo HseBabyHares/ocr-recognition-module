@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "IDRS System Context — Proposed Reconciliation",
+    "output": "architecture/onar/rendered/context.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "actors",
+        "label": "Actors",
+        "focus": ["consumer", "developer", "administrator", "idrs"],
+        "note": "Consumer, developer, and administrator access surrounds the IDRS OCR module."
+      },
+      {
+        "id": "proposal",
+        "label": "Proposed boundary",
+        "focus": ["consumer", "idrs", "keycloak"],
+        "note": "The proposed gRPC task facade keeps asynchronous task state inside IDRS."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "consumer",
+      "type": "external",
+      "label": "HSE Application",
+      "sublabel": "consumer system",
+      "tag": "external",
+      "pos": [40, 300],
+      "size": [190, 76]
+    },
+    {
+      "id": "developer",
+      "type": "external",
+      "label": "HSE Developer",
+      "sublabel": "integrates an application",
+      "tag": "external actor",
+      "pos": [40, 90],
+      "size": [190, 76]
+    },
+    {
+      "id": "administrator",
+      "type": "external",
+      "label": "Administrator",
+      "sublabel": "monitors operations",
+      "tag": "external actor",
+      "pos": [40, 420],
+      "size": [190, 76]
+    },
+    {
+      "id": "idrs",
+      "type": "backend",
+      "label": "IDRS OCR Module",
+      "sublabel": "gRPC SubmitTask / GetStatus / GetResult",
+      "tag": "proposed target",
+      "pos": [500, 285],
+      "size": [270, 96]
+    },
+    {
+      "id": "keycloak",
+      "type": "security",
+      "label": "Keycloak",
+      "sublabel": "OIDC and app credentials",
+      "tag": "identity authority",
+      "pos": [500, 90],
+      "size": [270, 76]
+    },
+    {
+      "id": "hse_records",
+      "type": "external",
+      "label": "HSE Records",
+      "sublabel": "consumer-owned comparison data",
+      "tag": "outside IDRS",
+      "pos": [930, 285],
+      "size": [230, 92]
+    }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "IDRS boundary", "wraps": ["idrs"] },
+    { "kind": "security-group", "label": "Identity boundary", "wraps": ["keycloak"] }
+  ],
+  "connections": [
+    {
+      "id": "consumer-idrs",
+      "from": "consumer",
+      "to": "idrs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "idrs-consumer",
+      "from": "idrs",
+      "to": "consumer",
+      "variant": "dashed"
+    },
+    { "id": "developer-idrs", "from": "developer", "to": "idrs", "variant": "dashed" },
+    { "id": "administrator-idrs", "from": "administrator", "to": "idrs", "variant": "dashed" },
+    { "id": "developer-keycloak", "from": "developer", "to": "keycloak", "variant": "security" },
+    { "id": "keycloak-idrs", "from": "keycloak", "to": "idrs", "variant": "security" },
+    { "id": "idrs-records", "from": "idrs", "to": "hse_records", "label": "bounded result", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Source architecture",
+      "items": [
+        "Onar's source API uses task creation plus status and result reads",
+        "HSE Application is the consumer system for document processing",
+        "Keycloak separates application and operator identity"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Proposed reconciliation",
+      "items": [
+        "Expose SubmitTask, GetStatus, and GetResult through gRPC",
+        "Keep durable task state and polling inside the OCR module",
+        "Propagate request_id, attempt_id, event_id, and traceparent"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Change relative to current OpenSpec",
+      "items": [
+        "Current OpenSpec and ADR-OCR-005 define unary Recognize and no durable OCR jobs",
+        "This diagram proposes an async task facade instead; the spec and api.md are not yet migrated",
+        "The proposal is not current implementation evidence"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "IDRS Use Cases and User Stories",
+    "output": "architecture/onar/rendered/use-cases.html",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "consumer", "label": "Consumer application" },
+    { "id": "developer", "label": "HSE developer" },
+    { "id": "administrator", "label": "Administrator" },
+    { "id": "system", "label": "IDRS system" }
+  ],
+  "phases": [
+    { "id": "access", "label": "Access", "fromCol": 0, "toCol": 1, "variant": "security" },
+    { "id": "submit", "label": "Submit", "fromCol": 2, "toCol": 2, "variant": "emphasis" },
+    { "id": "process", "label": "Process", "fromCol": 3, "toCol": 4, "variant": "default" },
+    { "id": "observe", "label": "Observe and read", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "developer_access", "label": "Application credential lifecycle", "lane": "developer", "fromCol": 0, "toCol": 2, "variant": "security" },
+    { "id": "operator_view", "label": "Operational inspection", "lane": "administrator", "fromCol": 3, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["submit", "accepted", "preprocess", "recognize", "result"],
+  "semanticChecks": {
+    "allowedRoots": ["submit", "developer_login", "administrator_login"],
+    "allowedTerminals": ["result", "poll", "error", "credentials_test", "telemetry"]
+  },
+  "nodes": [
+    {
+      "id": "submit",
+      "lane": "consumer",
+      "col": 2,
+      "type": "frontend",
+      "label": "Submit files",
+      "sublabel": "SNILS documents",
+      "tag": "gRPC SubmitTask"
+    },
+    {
+      "id": "poll",
+      "lane": "consumer",
+      "col": 4,
+      "type": "frontend",
+      "label": "Poll status",
+      "sublabel": "gRPC GetStatus"
+    },
+    {
+      "id": "result",
+      "lane": "consumer",
+      "col": 5,
+      "type": "frontend",
+      "label": "Read result",
+      "sublabel": "quality/error"
+    },
+    {
+      "id": "developer_login",
+      "lane": "developer",
+      "col": 0,
+      "type": "security",
+      "label": "Dev login",
+      "sublabel": "Keycloak identity"
+    },
+    {
+      "id": "credentials",
+      "lane": "developer",
+      "col": 1,
+      "type": "security",
+      "label": "Credentials",
+      "sublabel": "create/rotate/delete"
+    },
+    {
+      "id": "credentials_test",
+      "lane": "developer",
+      "col": 2,
+      "type": "backend",
+      "label": "Test client",
+      "sublabel": "owned client"
+    },
+    {
+      "id": "administrator_login",
+      "lane": "administrator",
+      "col": 4,
+      "type": "security",
+      "label": "Admin login",
+      "sublabel": "operator identity"
+    },
+    {
+      "id": "telemetry",
+      "lane": "administrator",
+      "col": 5,
+      "type": "frontend",
+      "label": "Telemetry",
+      "sublabel": "logs/metrics/traces"
+    },
+    {
+      "id": "accepted",
+      "lane": "system",
+      "col": 2,
+      "type": "backend",
+      "label": "Task accepted",
+      "sublabel": "task + id",
+      "tag": "async"
+    },
+    {
+      "id": "preprocess",
+      "lane": "system",
+      "col": 3,
+      "type": "backend",
+      "label": "Preprocess",
+      "sublabel": "normalize"
+    },
+    {
+      "id": "recognize",
+      "lane": "system",
+      "col": 4,
+      "type": "backend",
+      "label": "Recognize",
+      "sublabel": "bounded OCR"
+    },
+    {
+      "id": "error",
+      "lane": "system",
+      "col": 5,
+      "type": "security",
+      "label": "Error outcome",
+      "sublabel": "safe reason code",
+      "tag": "terminal"
+    }
+  ],
+  "edges": [
+    { "id": "submit-accepted", "from": "submit", "to": "accepted", "label": "SubmitTask", "role": "async", "variant": "emphasis" },
+    { "id": "accepted-preprocess", "from": "accepted", "to": "preprocess", "label": "PreprocessPhoto", "role": "main" },
+    { "id": "preprocess-recognize", "from": "preprocess", "to": "recognize", "label": "Recognize", "role": "main" },
+    { "id": "recognize-result", "from": "recognize", "to": "result", "label": "GetResult", "role": "return", "variant": "emphasis" },
+    { "id": "accepted-poll", "from": "accepted", "to": "poll", "label": "GetStatus", "role": "async", "variant": "dashed" },
+    { "id": "poll-result", "from": "poll", "to": "result", "label": "GetResult", "role": "return", "variant": "emphasis" },
+    { "id": "recognize-error", "from": "recognize", "to": "error", "label": "reason code", "role": "error", "variant": "security" },
+    { "id": "developer-login-credentials", "from": "developer_login", "to": "credentials", "label": "authorize", "role": "main", "variant": "security" },
+    { "id": "credentials-test", "from": "credentials", "to": "credentials_test", "label": "client credentials", "role": "main", "variant": "security" },
+    { "id": "administrator-login-telemetry", "from": "administrator_login", "to": "telemetry", "label": "operator access", "role": "return", "variant": "security" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "User Story Mapping",
+      "items": [
+        "Consumer: upload or re-upload documents, receive task_id, poll status, and read result",
+        "Developer: log in, create/list/update/rotate/delete application credentials, and test integration"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Proposed contract",
+      "items": [
+        "Polling uses gRPC GetStatus and GetResult inside the OCR module"
+      ]
+    }
+  ]
+}

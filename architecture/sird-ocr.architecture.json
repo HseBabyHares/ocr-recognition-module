@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Архитектура интеграции SIRD OCR",
+    "output": "architecture/rendered/sird-ocr-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "task-flow",
+        "label": "Путь задания",
+        "focus": [
+          "sird",
+          "workflow",
+          "kafka",
+          "process",
+          "ocr",
+          "postgres"
+        ],
+        "note": "Задание проходит через доверенный API, Kafka и Process Service к stateless OCR runtime."
+      },
+      {
+        "id": "durability",
+        "label": "Надёжность и публикация",
+        "focus": [
+          "workflow",
+          "kafka",
+          "process",
+          "postgres",
+          "rustfs"
+        ],
+        "note": "Попытки, fencing, result/DLQ outbox и retention опираются на PostgreSQL и RustFS."
+      },
+      {
+        "id": "identity",
+        "label": "Идентичность и границы",
+        "focus": [
+          "spire",
+          "workflow",
+          "process",
+          "kafka",
+          "rustfs",
+          "sird"
+        ],
+        "note": "Локальный mTLS является профилем разработки; production identity target — SPIFFE/SPIRE."
+      },
+      {
+        "id": "sequence",
+        "label": "Последовательность обработки",
+        "focus": [
+          "sird",
+          "workflow",
+          "kafka",
+          "process",
+          "ocr"
+        ],
+        "note": "Submit, outbox, consume, claim, bounded OCR, result/DLQ outbox, broker acknowledgement, then offset commit."
+      },
+      {
+        "id": "state",
+        "label": "Состояния задания",
+        "focus": [
+          "kafka",
+          "process",
+          "postgres"
+        ],
+        "note": "Attempt fencing, retry schedule, terminal outcome, and DLQ transition."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "sird",
+      "type": "external",
+      "label": "SIRD Backend",
+      "sublabel": "trusted backend caller",
+      "tag": "backend-only",
+      "pos": [
+        40,
+        260
+      ],
+      "size": [
+        170,
+        72
+      ]
+    },
+    {
+      "id": "workflow",
+      "type": "backend",
+      "label": "Task Service",
+      "sublabel": "Python service; API target",
+      "tag": "target API boundary",
+      "pos": [
+        280,
+        260
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka 4.3.1 KRaft",
+      "sublabel": "TLS topics: task / result / DLQ",
+      "tag": "source offsets",
+      "pos": [
+        540,
+        260
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "process",
+      "type": "backend",
+      "label": "Process Service",
+      "sublabel": "claim / OCR / fencing / outbox",
+      "tag": "shared attempt budget",
+      "pos": [
+        800,
+        260
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "ocr",
+      "type": "backend",
+      "label": "Stateless OCR Runtime",
+      "sublabel": "sird_recognition runtime",
+      "tag": "no durable task state",
+      "pos": [
+        1060,
+        260
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL 17",
+      "sublabel": "tasks / attempts / outboxes",
+      "tag": "transactional state",
+      "pos": [
+        800,
+        430
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "rustfs",
+      "type": "cloud",
+      "label": "RustFS 1.0.0",
+      "sublabel": "integration-owned artifact storage",
+      "tag": "12h fallback retention",
+      "pos": [
+        1060,
+        430
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "spire",
+      "type": "security",
+      "label": "SPIFFE / SPIRE",
+      "sublabel": "production workload identity target",
+      "tag": "URI SAN, not CN",
+      "pos": [
+        280,
+        80
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "verification",
+      "type": "backend",
+      "label": "Verification package",
+      "sublabel": "oracles / corpus / metrics",
+      "tag": "independent package",
+      "pos": [
+        540,
+        570
+      ],
+      "size": [
+        190,
+        72
+      ]
+    },
+    {
+      "id": "experiment",
+      "type": "backend",
+      "label": "Experiment package",
+      "sublabel": "replay / evaluator / selection",
+      "tag": "independent package",
+      "pos": [
+        800,
+        570
+      ],
+      "size": [
+        190,
+        72
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "Доверенная интеграционная граница",
+      "wraps": [
+        "workflow",
+        "kafka",
+        "process",
+        "postgres",
+        "rustfs"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Брокер-независимый OCR модуль",
+      "wraps": [
+        "ocr"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Локальный профиль: loopback ports",
+      "wraps": [
+        "kafka",
+        "postgres",
+        "rustfs"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "sird-submit",
+      "from": "sird",
+      "to": "workflow",
+      "label": "target mTLS API; transport absent",
+      "variant": "emphasis",
+      "labelDy": -58
+    },
+    {
+      "id": "workflow-task",
+      "from": "workflow",
+      "to": "kafka",
+      "label": "task outbox → sird.task.v1",
+      "variant": "dashed",
+      "labelDy": -58
+    },
+    {
+      "id": "kafka-process",
+      "from": "kafka",
+      "to": "process",
+      "label": "consume task event",
+      "variant": "emphasis",
+      "labelDy": -58
+    },
+    {
+      "id": "process-ocr",
+      "from": "process",
+      "to": "ocr",
+      "label": "injected OCR call / 35s boundary",
+      "labelDy": -58
+    },
+    {
+      "id": "process-db",
+      "from": "process",
+      "to": "postgres",
+      "label": "attempt + result/DLQ transaction",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 80
+    },
+    {
+      "id": "process-artifact",
+      "from": "process",
+      "to": "rustfs",
+      "label": "signed capability / bounded artifact read",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          895,
+          370
+        ],
+        [
+          1155,
+          370
+        ]
+      ],
+      "labelDx": 100
+    },
+    {
+      "id": "result-publish",
+      "from": "process",
+      "to": "kafka",
+      "label": "result + DLQ outbox publication",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          895,
+          210
+        ],
+        [
+          635,
+          210
+        ]
+      ],
+      "labelDy": -24
+    },
+    {
+      "id": "spire-workflow",
+      "from": "spire",
+      "to": "workflow",
+      "label": "role policy",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDx": -100,
+      "labelDy": 24
+    },
+    {
+      "id": "spire-process",
+      "from": "spire",
+      "to": "process",
+      "label": "SVID / trust bundle target",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDx": 120
+    },
+    {
+      "id": "experiment-verification",
+      "from": "experiment",
+      "to": "verification",
+      "label": "evidence-only metrics / corpus handoff",
+      "variant": "dashed",
+      "labelDy": -58
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Рабочий путь",
+      "items": [
+        "SIRD target boundary for backend-only Task Service; transport is not deployed",
+        "Kafka доставляет versioned task event",
+        "Process Service вызывает stateless OCR runtime"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Надёжность",
+      "items": [
+        "PostgreSQL хранит shared attempt budget и fencing",
+        "Result/DLQ outbox повторяет публикацию со стабильным event ID",
+        "Source offset commit зависит от durable outcome и broker acknowledgement"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Границы",
+      "items": [
+        "Local mTLS is implemented profile evidence; SPIFFE/SPIRE remains production target evidence",
+        "URI SAN проверяется отдельно от CN",
+        "Model execution, OS sandbox и acceptance corpus пока не verified"
+      ]
+    }
+  ]
+}

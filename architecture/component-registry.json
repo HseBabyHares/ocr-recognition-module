@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "components": [
+    {
+      "id": "example-api",
+      "name": "Example API",
+      "kind": "service",
+      "owner": "example-team",
+      "paths": [
+        "src/example_api/**"
+      ],
+      "allowedDependencies": [],
+      "publicInterfaces": [
+        "http:example-api"
+      ],
+      "dataClassifications": [
+        "internal"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+[project]
+name = "sird-recognition"
+version = "0.1.0"
+description = "SIRD document recognition"
+requires-python = ">=3.14"
+dependencies = ["opencv-python-headless>=4.10"]
+
+[dependency-groups]
+dev = [
+    "granian>=2.8.3",
+    "litestar>=2.24.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.8",
+    "ty>=0.0.82",
+    "wemake-python-styleguide>=1.8.1",
+]
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sird_recognition"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 79
+src = ["src", "tests"]
+extend-exclude = [".lsp"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ty.environment]
+python-version = "3.14"
+python = "integration/.venv"
+root = [
+    "src",
+    "tests",
+    "integration/src",
+    "integration/tests",
+    "experiment/src",
+    "verification/src",
+    "test_app/src",
+]

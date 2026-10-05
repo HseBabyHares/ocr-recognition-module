@@ -1,0 +1,13 @@
+.venv/
+.coverage
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+
+.env
+integration/.env
+integration/spire/runtime/*
+integration/certs/kafka/*
+generated-gpt-images/
+artifacts/corpus/gpt-images/

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+printf '%s\n' 'Running repository harness checks...'
+node tools/harness/checks/run-all.mjs
+
+printf '%s\n' 'Running root test suite...'
+uv run --project . --group dev pytest tests
+
+printf '%s\n' 'Running integration test suite...'
+uv run --project integration --extra test pytest integration/tests

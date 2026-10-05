@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "basedpyright": {
+      "disabled": true
+    },
+    "ruff": {
+      "isLinter": true
+    },
+    "flake8": {
+      "command": "python3",
+      "args": [".lsp/flake8-wps-server.py"],
+      "fileTypes": [".py", ".pyi"],
+      "rootMarkers": [".flake8", "pyproject.toml"],
+      "isLinter": true,
+      "languageId": "python"
+    }
+  }
+}

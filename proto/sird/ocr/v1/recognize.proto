@@ -1,0 +1,243 @@
+syntax = "proto3";
+
+package sird.ocr.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "ru.sird.ocr.v1";
+option go_package = "sird/ocr/v1;ocrv1";
+
+// Production boundary. Internal Prepare, Probe, form resolution, and
+// ExecuteProfile stages are not exposed as RPCs.
+service OcrService {
+  rpc Recognize(RecognizeRequest) returns (RecognizeResponse);
+}
+
+message RecognizeRequest {
+  string contract_version = 1;
+  string task_id = 2;
+  string request_id = 3;
+  string attempt_id = 4;
+  ArtifactRef artifact_ref = 5;
+  ProcessingPolicy processing_policy = 6;
+
+  // These numbers and names are reserved permanently. The production ingress
+  // must reject unknown wire fields carrying any caller-selected candidate,
+  // form, or profile selector before dispatching to OCR.
+  reserved 7, 8, 9;
+  reserved "candidate_id", "form_id", "profile_id";
+}
+
+message ArtifactRef {
+  // Signed, opaque, server-issued capability. The signature binds every
+  // claim below, including task/request identity, audience, expiry, checksum,
+  // media metadata, object generation, and issuer. OCR verifies the signature
+  // and all bindings before reading from SIRD-owned storage. It is not a URL
+  // or filesystem path.
+  string capability = 1;
+  string task_id = 2;
+  string request_id = 3;
+  string audience = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  string sha256 = 6;
+  string media_type = 7;
+  uint64 size_bytes = 8;
+  string object_generation = 9;
+  string issuer = 10;
+}
+
+message ProcessingPolicy {
+  string input_policy_id = 1;
+  string input_policy_version = 2;
+  string classifier_policy_id = 3;
+  string classifier_policy_version = 4;
+  ExecutionLimits limits = 5;
+  string diagnostic_retention_policy = 6;
+}
+
+message ExecutionLimits {
+  uint64 timeout_ms = 1;
+  uint64 memory_limit_bytes = 2;
+  uint64 max_input_bytes = 3;
+  uint64 max_input_pixels = 4;
+  uint64 max_total_pixels = 5;
+  uint64 max_output_pixels = 6;
+  uint32 max_pages = 7;
+  uint32 cpu_threads = 8;
+  uint32 max_model_calls = 9;
+  uint32 max_variants = 10;
+}
+
+message RecognizeResponse {
+  string contract_version = 1;
+  string task_id = 2;
+  string request_id = 3;
+  string attempt_id = 4;
+  OperationStatus operation_status = 5;
+  TaskOutcome task_outcome = 6;
+  ResultCompleteness result_completeness = 7;
+  FormResolution form_resolution = 8;
+  repeated FieldResult fields = 9;
+  repeated Diagnostic diagnostics = 10;
+  ExecutionMetadata execution = 11;
+  TechnicalCode technical_code = 12;
+  string technical_code_raw = 13;
+  SubjectDiagnostic subject_diagnostic = 14;
+  // Human/diagnostic context only. Retry decisions use the enum below.
+  string technical_reason = 15;
+  TechnicalReasonClass technical_reason_class = 16;
+}
+
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+  OPERATION_STATUS_OK = 1;
+  OPERATION_STATUS_PARTIAL = 2;
+  OPERATION_STATUS_FAILED = 3;
+  OPERATION_STATUS_CANCELLED = 4;
+  OPERATION_STATUS_LIMIT_EXCEEDED = 5;
+}
+
+enum TaskOutcome {
+  TASK_OUTCOME_UNSPECIFIED = 0;
+  TASK_OUTCOME_COMPLETED = 1;
+  TASK_OUTCOME_SUBJECT_REJECTED = 2;
+  TASK_OUTCOME_FAILED = 3;
+  TASK_OUTCOME_CANCELLED = 4;
+  TASK_OUTCOME_LIMIT_EXCEEDED = 5;
+}
+
+enum ResultCompleteness {
+  RESULT_COMPLETENESS_UNSPECIFIED = 0;
+  RESULT_COMPLETENESS_COMPLETE = 1;
+  RESULT_COMPLETENESS_PARTIAL = 2;
+  RESULT_COMPLETENESS_NONE = 3;
+}
+
+enum TechnicalCode {
+  TECHNICAL_CODE_UNSPECIFIED = 0;
+  TECHNICAL_CODE_INVALID_INPUT = 1;
+  TECHNICAL_CODE_INPUT_LIMIT_EXCEEDED = 2;
+  TECHNICAL_CODE_INVALID_CONFIGURATION = 3;
+  TECHNICAL_CODE_CAPABILITY_MISMATCH = 4;
+  TECHNICAL_CODE_MATERIAL_UNAVAILABLE = 5;
+  TECHNICAL_CODE_MODEL_UNAVAILABLE = 6;
+  TECHNICAL_CODE_EXECUTION_LIMIT_EXCEEDED = 7;
+  TECHNICAL_CODE_CANCELLED = 8;
+  TECHNICAL_CODE_EXECUTION_ERROR = 9;
+  TECHNICAL_CODE_AUTHORIZATION_FAILED = 10;
+}
+
+enum TechnicalReasonClass {
+  TECHNICAL_REASON_CLASS_UNSPECIFIED = 0;
+  TECHNICAL_REASON_CLASS_TRANSIENT = 1;
+  TECHNICAL_REASON_CLASS_PERMANENT = 2;
+}
+
+enum SubjectDiagnostic {
+  SUBJECT_DIAGNOSTIC_UNSPECIFIED = 0;
+  SUBJECT_DIAGNOSTIC_SUPPORTED = 1;
+  SUBJECT_DIAGNOSTIC_TARGET_NOT_DETECTED = 2;
+  SUBJECT_DIAGNOSTIC_FORM_AMBIGUOUS = 3;
+  SUBJECT_DIAGNOSTIC_FORM_UNSUPPORTED = 4;
+  SUBJECT_DIAGNOSTIC_FORM_UNRESOLVED = 5;
+  SUBJECT_DIAGNOSTIC_MULTIPLE_CANDIDATES = 6;
+}
+
+message FormResolution {
+  ResolutionStatus status = 1;
+  string form_id = 2;
+  string calibration_ref = 3;
+  string decision_evidence_ref = 4;
+  repeated FormHypothesis alternatives = 5;
+
+  enum ResolutionStatus {
+    RESOLUTION_STATUS_UNSPECIFIED = 0;
+    RESOLUTION_STATUS_RESOLVED = 1;
+    RESOLUTION_STATUS_AMBIGUOUS = 2;
+    RESOLUTION_STATUS_UNRESOLVED = 3;
+    RESOLUTION_STATUS_UNSUPPORTED = 4;
+  }
+}
+
+message FormHypothesis {
+  string form_id = 1;
+  optional double decision_score = 2;
+  string score_scale = 3;
+  string evidence_ref = 4;
+}
+
+message FieldResult {
+  string field_id = 1;
+  FieldStatus status = 2;
+  optional string raw_value = 3;
+  optional string value = 4;
+  repeated string evidence_refs = 5;
+  repeated ValidationResult validations = 6;
+  repeated Diagnostic diagnostics = 7;
+  string selected_candidate_id = 8;
+  Confidence confidence = 9;
+  repeated string correction_refs = 10;
+  repeated string normalization_refs = 11;
+}
+
+message Confidence {
+  optional double decision_score = 1;
+  string score_scale = 2;
+  optional double probability = 3;
+  string calibration_id = 4;
+  string calibration_scope = 5;
+}
+
+enum FieldStatus {
+  FIELD_STATUS_UNSPECIFIED = 0;
+  FIELD_STATUS_EXTRACTED = 1;
+  FIELD_STATUS_ABSENT = 2;
+  FIELD_STATUS_UNREADABLE = 3;
+  FIELD_STATUS_CONFLICT = 4;
+  FIELD_STATUS_NOT_APPLICABLE = 5;
+  FIELD_STATUS_NOT_PROCESSED = 6;
+}
+
+message ValidationResult {
+  string rule_id = 1;
+  string rule_version = 2;
+  ValidationStatus status = 3;
+  string reason = 4;
+  repeated string input_candidate_ids = 5;
+}
+
+enum ValidationStatus {
+  VALIDATION_STATUS_UNSPECIFIED = 0;
+  VALIDATION_STATUS_VALID = 1;
+  VALIDATION_STATUS_INVALID = 2;
+  VALIDATION_STATUS_NOT_APPLICABLE = 3;
+  VALIDATION_STATUS_NOT_RUN = 4;
+}
+
+message Diagnostic {
+  string code = 1;
+  DiagnosticScope scope = 2;
+  string evidence_ref = 3;
+  string reason = 4;
+}
+
+enum DiagnosticScope {
+  DIAGNOSTIC_SCOPE_UNSPECIFIED = 0;
+  DIAGNOSTIC_SCOPE_SUBJECT = 1;
+  DIAGNOSTIC_SCOPE_FIELD = 2;
+  DIAGNOSTIC_SCOPE_STAGE = 3;
+  DIAGNOSTIC_SCOPE_ARTIFACT = 4;
+}
+
+message ExecutionMetadata {
+  string applied_execution_ref = 1;
+  string specification_hash = 2;
+  string implementation_version = 3;
+  string model_version = 4;
+  string calibration_version = 5;
+  string device = 6;
+  uint64 elapsed_ms = 7;
+  uint32 model_calls = 8;
+  bool cache_hit = 9;
+}

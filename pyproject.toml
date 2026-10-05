@@ -24,7 +24,7 @@ build-backend = "hatchling.build"
 packages = ["src/sird_recognition"]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py313"
 line-length = 79
 src = ["src", "tests"]
 extend-exclude = [".lsp"]

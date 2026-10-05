@@ -1,0 +1,34 @@
+"""Optional, evidence-only candidate extraction over OCR observations."""
+
+from sird_recognition import (
+    _candidate_extractor,
+    candidate_binding,
+    candidate_contracts,
+)
+
+CandidateExtractionError = candidate_contracts.CandidateExtractionError
+CandidateExtractor = candidate_contracts.CandidateExtractor
+CandidateField = candidate_contracts.CandidateField
+CandidateSpan = candidate_contracts.CandidateSpan
+CandidateStageLimitError = candidate_contracts.CandidateStageLimitError
+CandidateStageTelemetry = candidate_contracts.CandidateStageTelemetry
+CandidateStageUnavailableError = (
+    candidate_contracts.CandidateStageUnavailableError
+)
+CandidateTelemetrySink = candidate_contracts.CandidateTelemetrySink
+bind_candidates = candidate_binding.bind_candidates
+CandidateExtractionUnavailableError = CandidateStageUnavailableError
+
+DEFAULT_CPU_THREADS = _candidate_extractor.DEFAULT_CPU_THREADS
+DEFAULT_MAX_CANDIDATES = _candidate_extractor.DEFAULT_MAX_CANDIDATES
+DEFAULT_MAX_MODEL_CALLS = _candidate_extractor.DEFAULT_MAX_MODEL_CALLS
+DEFAULT_MAX_TEXT_LENGTH = _candidate_extractor.DEFAULT_MAX_TEXT_LENGTH
+DEFAULT_MEMORY_LIMIT_BYTES = _candidate_extractor.DEFAULT_MEMORY_LIMIT_BYTES
+DEFAULT_MODEL_ID = _candidate_extractor.DEFAULT_MODEL_ID
+DEFAULT_MODEL_REVISION = _candidate_extractor.DEFAULT_MODEL_REVISION
+DEFAULT_RESOURCE_REVISION = _candidate_extractor.DEFAULT_RESOURCE_REVISION
+DEFAULT_SCORE_SCALE = _candidate_extractor.DEFAULT_SCORE_SCALE
+DEFAULT_TIMEOUT_SECONDS = _candidate_extractor.DEFAULT_TIMEOUT_SECONDS
+GLiNERCandidateExtractor = _candidate_extractor.GLiNERCandidateExtractor
+GLiNERCandidateExtractor.__module__ = __name__
+GlinerCandidateExtractor = GLiNERCandidateExtractor

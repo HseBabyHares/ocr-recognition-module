@@ -1,0 +1,24 @@
+{
+  "model_id": "urchade/gliner_multi-v2.1",
+  "model_revision": "443d26d654e0324125a96bebd8e796c14ff2efe6",
+  "label_schema_version": "ocr-fields-v1",
+  "labels": [
+    "full_name",
+    "birth_date",
+    "birth_place",
+    "registration_date"
+  ],
+  "threshold": 0.35,
+  "cpu_threads": 1,
+  "max_text_length": 32000,
+  "max_candidates": 64,
+  "timeout_seconds": 10,
+  "memory_limit_bytes": 4294967296,
+  "ocr_labels_sha256": "1c6246349c0a90ba7b733c746bc49c17fe6285d1f157a67ff6e9c605dd0e8fae",
+  "model_safetensors_sha256": "2100142f31627531497850659dcb3821c99d5e71c08a8e01a98e4b11ef32a199",
+  "tokenizer_id": "microsoft/mdeberta-v3-base",
+  "tokenizer_revision": "a0484667b22365f84929a935b5e50a51f71f159d",
+  "tokenizer_config_sha256": "3f3978e0c036f2c2588cac34a6047cbb0af0b0dc1814254e291028529805496d",
+  "backbone_config_sha256": "bcffcd343dc5efa5ef2d5a58d2b405eed108f01cc45b48d0a907b333ec41801f",
+  "tokenizer_spm_sha256": "13c8d666d62a7bc4ac8f040aab68e942c861f93303156cc28f5c7e885d86d6e3"
+}

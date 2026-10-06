@@ -1,0 +1,245 @@
+{
+  "schemaVersion": "1.0",
+  "reviewedCommit": "working-tree-2026-09-20",
+  "trustZones": [
+    {
+      "id": "external",
+      "name": "Trusted SIRD backend boundary"
+    },
+    {
+      "id": "application",
+      "name": "SIRD workflow and OCR runtime"
+    },
+    {
+      "id": "data",
+      "name": "Durable state and artifact stores"
+    },
+    {
+      "id": "identity",
+      "name": "Workload identity control plane"
+    }
+  ],
+  "trustBoundaries": [
+    {
+      "id": "external-to-application",
+      "from": "external",
+      "to": "application"
+    },
+    {
+      "id": "application-to-data",
+      "from": "application",
+      "to": "data"
+    },
+    {
+      "id": "identity-to-application",
+      "from": "identity",
+      "to": "application"
+    }
+  ],
+  "elements": [
+    {
+      "id": "sird-backend",
+      "type": "external-entity",
+      "name": "SIRD Backend",
+      "trustZone": "external",
+      "componentId": null
+    },
+    {
+      "id": "task-service",
+      "type": "process",
+      "name": "Task Service",
+      "trustZone": "application",
+      "componentId": "sird-workflow"
+    },
+    {
+      "id": "process-service",
+      "type": "process",
+      "name": "Process Service",
+      "trustZone": "application",
+      "componentId": "sird-workflow"
+    },
+    {
+      "id": "ocr-runtime",
+      "type": "process",
+      "name": "Stateless OCR Runtime",
+      "trustZone": "application",
+      "componentId": "sird-recognition"
+    },
+    {
+      "id": "kafka",
+      "type": "data-store",
+      "name": "Kafka task/result/DLQ topics",
+      "trustZone": "data",
+      "componentId": "sird-workflow"
+    },
+    {
+      "id": "postgres",
+      "type": "data-store",
+      "name": "PostgreSQL workflow state",
+      "trustZone": "data",
+      "componentId": "sird-workflow"
+    },
+    {
+      "id": "rustfs",
+      "type": "data-store",
+      "name": "RustFS artifacts",
+      "trustZone": "data",
+      "componentId": "sird-workflow"
+    },
+    {
+      "id": "spiffe",
+      "type": "process",
+      "name": "SPIFFE/SPIRE identity",
+      "trustZone": "identity",
+      "componentId": null
+    }
+  ],
+  "flows": [
+    {
+      "id": "sird-to-task",
+      "source": "sird-backend",
+      "target": "task-service",
+      "data": [
+        "task_id",
+        "request_id",
+        "signed artifact capability",
+        "policy"
+      ],
+      "classifications": [
+        "task-metadata",
+        "document-derived"
+      ],
+      "trustBoundary": "external-to-application"
+    },
+    {
+      "id": "task-to-sird",
+      "source": "task-service",
+      "target": "sird-backend",
+      "data": [
+        "task status",
+        "terminal result",
+        "result availability"
+      ],
+      "classifications": [
+        "task-metadata",
+        "document-derived"
+      ],
+      "trustBoundary": "external-to-application"
+    },
+    {
+      "id": "task-to-kafka",
+      "source": "task-service",
+      "target": "kafka",
+      "data": [
+        "versioned task event",
+        "artifact reference",
+        "retention policy"
+      ],
+      "classifications": [
+        "task-metadata",
+        "document-derived"
+      ],
+      "trustBoundary": "application-to-data"
+    },
+    {
+      "id": "kafka-to-process",
+      "source": "kafka",
+      "target": "process-service",
+      "data": [
+        "task event",
+        "source offset"
+      ],
+      "classifications": [
+        "task-metadata"
+      ],
+      "trustBoundary": "application-to-data"
+    },
+    {
+      "id": "process-to-ocr",
+      "source": "process-service",
+      "target": "ocr-runtime",
+      "data": [
+        "task context",
+        "artifact capability",
+        "limits",
+        "policy"
+      ],
+      "classifications": [
+        "document-derived"
+      ],
+      "trustBoundary": null
+    },
+    {
+      "id": "process-to-postgres",
+      "source": "process-service",
+      "target": "postgres",
+      "data": [
+        "attempt lease",
+        "fencing token",
+        "terminal outcome",
+        "result/DLQ outbox"
+      ],
+      "classifications": [
+        "task-metadata"
+      ],
+      "trustBoundary": "application-to-data"
+    },
+    {
+      "id": "process-to-rustfs",
+      "source": "process-service",
+      "target": "rustfs",
+      "data": [
+        "bounded artifact read"
+      ],
+      "classifications": [
+        "document-derived"
+      ],
+      "trustBoundary": "application-to-data"
+    },
+    {
+      "id": "process-to-kafka",
+      "source": "process-service",
+      "target": "kafka",
+      "data": [
+        "result event",
+        "dead-letter event"
+      ],
+      "classifications": [
+        "task-metadata",
+        "document-derived"
+      ],
+      "trustBoundary": "application-to-data"
+    },
+    {
+      "id": "spiffe-to-task",
+      "source": "spiffe",
+      "target": "task-service",
+      "data": [
+        "SVID",
+        "trust bundle",
+        "role identity"
+      ],
+      "classifications": [
+        "identity"
+      ],
+      "trustBoundary": "identity-to-application"
+    },
+    {
+      "id": "spiffe-to-process",
+      "source": "spiffe",
+      "target": "process-service",
+      "data": [
+        "SVID",
+        "trust bundle",
+        "role identity"
+      ],
+      "classifications": [
+        "identity"
+      ],
+      "trustBoundary": "identity-to-application"
+    }
+  ],
+  "archifySpec": "architecture/sird-ocr-dfd.architecture.json",
+  "archifyArtifact": "architecture/rendered/sird-ocr-dfd.html",
+  "adversaryModel": "security/threat-model/adversary-model.json"
+}

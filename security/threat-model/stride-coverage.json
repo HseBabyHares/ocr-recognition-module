@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.0",
+  "subjects": [
+    {
+      "type": "external-entity",
+      "id": "user",
+      "coverage": {
+        "spoofing": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "tampering": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "repudiation": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "information-disclosure": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "denial-of-service": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "elevation-of-privilege": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        }
+      }
+    },
+    {
+      "type": "process",
+      "id": "example-api",
+      "coverage": {
+        "spoofing": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "tampering": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "repudiation": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "information-disclosure": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "denial-of-service": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "elevation-of-privilege": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        }
+      }
+    },
+    {
+      "type": "flow",
+      "id": "user-to-example-api",
+      "coverage": {
+        "spoofing": {
+          "disposition": "threat",
+          "refs": [
+            "TM-SPO-001"
+          ],
+          "rationale": null
+        },
+        "tampering": {
+          "disposition": "threat",
+          "refs": [
+            "TM-TAM-001"
+          ],
+          "rationale": null
+        },
+        "repudiation": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "information-disclosure": {
+          "disposition": "threat",
+          "refs": [
+            "TM-INF-001"
+          ],
+          "rationale": null
+        },
+        "denial-of-service": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        },
+        "elevation-of-privilege": {
+          "disposition": "not-applicable",
+          "refs": [],
+          "rationale": "Template placeholder; replace with a reviewed repository-specific rationale."
+        }
+      }
+    }
+  ]
+}

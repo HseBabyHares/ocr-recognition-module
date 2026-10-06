@@ -1,0 +1,31 @@
+stages: [verify, security, review]
+
+fadd_deterministic:
+  stage: verify
+  image: node:22
+  script:
+    - node tools/harness/checks/run-all.mjs
+  artifacts:
+    when: always
+    paths: [artifacts/]
+
+fadd_security:
+  stage: security
+  image: python:3.13
+  variables:
+    SECURITY_CACHE_DIR: "$CI_PROJECT_DIR/../omp-fadd-security-cache"
+  script:
+    - python3 tools/security/install.py --prefix "$CI_PROJECT_DIR/.tools/security"
+    - export PATH="$CI_PROJECT_DIR/.tools/security/bin:$PATH"
+    - python3 tools/security/scan.py --repo . --out artifacts/security
+  artifacts:
+    when: always
+    paths: [artifacts/security/]
+
+fadd_ai_review:
+  stage: review
+  image: node:22
+  when: manual
+  allow_failure: true
+  script:
+    - echo "Use tools/ai-gates with protected OPENROUTER/Codex credentials after bounded-context approval."

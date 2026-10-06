@@ -1,0 +1,31 @@
+{
+  "version": "1.2.0",
+  "owner": "engineering-harness",
+  "workspace": {
+    "denyOutside": false
+  },
+  "protectedPaths": [],
+  "nonAuthorizableProtectedPaths": [],
+  "generatedPaths": [],
+  "destructiveCommandPatterns": [],
+  "externalWriteCommandPatterns": [],
+  "allowedMcpReadTools": ["*"],
+  "redactionPatterns": [
+    {
+      "pattern": "(Authorization\\s*[:=]\\s*Bearer\\s+)[A-Za-z0-9._~+\\-/=]+",
+      "replacement": "$1[REDACTED]"
+    },
+    {
+      "pattern": "((?:OPENROUTER|OPENAI|ANTHROPIC|GITHUB|GH|AWS)_[A-Z0-9_]*(?:KEY|TOKEN|SECRET)\\s*[:=]\\s*)[^\\s\\\"\\']+",
+      "replacement": "$1[REDACTED]"
+    },
+    {
+      "pattern": "\\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\\b",
+      "replacement": "[REDACTED_GITHUB_TOKEN]"
+    },
+    {
+      "pattern": "\\bsk-[A-Za-z0-9_-]{16,}\\b",
+      "replacement": "[REDACTED_API_KEY]"
+    }
+  ]
+}

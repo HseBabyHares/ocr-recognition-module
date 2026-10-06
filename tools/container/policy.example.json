@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "status": "template-unconfigured",
+  "images": {
+    "application": {
+      "context": ".",
+      "dockerfile": "Dockerfile",
+      "target": null,
+      "platform": "linux/amd64",
+      "maxSize": "300MiB",
+      "maxGrowthBytes": 10485760,
+      "maxGrowthPercent": 5,
+      "maxLayers": 18,
+      "minimumEfficiency": 0.95,
+      "smoke": {"command": [], "timeoutSeconds": 30}
+    }
+  }
+}

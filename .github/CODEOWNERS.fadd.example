@@ -1,0 +1,14 @@
+# Rename to CODEOWNERS and replace handles before activating strict gates.
+/.github/workflows/ @platform-owner @security-owner
+/.github/rulesets/ @platform-owner @security-owner
+/tools/harness/ @platform-owner
+/tools/security/ @security-owner
+/tools/quality/ @platform-owner
+/tools/container/ @platform-owner
+/tools/architecture/ @architecture-owner
+/tools/ai-gates/ @platform-owner @security-owner
+/schemas/ @platform-owner
+/architecture/ @architecture-owner
+/security/threat-model/ @security-owner @architecture-owner
+/quality/baseline.json @platform-owner
+/APPEND_SYSTEM.md @platform-owner

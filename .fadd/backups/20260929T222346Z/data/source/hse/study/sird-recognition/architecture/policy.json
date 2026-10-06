@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0",
+  "status": "active",
+  "profile": "network-service",
+  "watchedImplementationRoots": [
+    "src/**",
+    "integration/src/**",
+    "verification/src/**",
+    "experiment/src/**",
+    "test_app/src/**",
+    "compose.integration.yml",
+    "integration/migrations/**"
+  ],
+  "requiredViews": [
+    "system-context",
+    "container",
+    "deployment",
+    "data-model",
+    "sequence",
+    "state"
+  ],
+  "conditionalViews": [
+    {
+      "when": ["compose.integration.yml", "integration/migrations/**"],
+      "require": ["deployment", "data-model"]
+    },
+    {
+      "when": ["**/contracts/**", "**/spiffe.py", "**/service.py"],
+      "require": ["sequence"]
+    },
+    {
+      "when": ["**/process.py", "**/consumer.py", "**/attempts.py"],
+      "require": ["state"]
+    }
+  ],
+  "requiredFiles": [
+    "architecture/component-registry.json",
+    "architecture/model/workspace.dsl",
+    "architecture/views.json",
+    "architecture/sird-ocr.architecture.json",
+    "architecture/sird-ocr-dfd.architecture.json",
+    "architecture/rendered/sird-ocr-architecture.html",
+    "architecture/rendered/sird-ocr-dfd.html",
+    "security/threat-model/adversary-model.json",
+    "security/threat-model/dfd.json",
+    "security/threat-model/stride-coverage.json",
+    "security/threat-model/threats.json"
+  ],
+  "architectureArtifactGlobs": [
+    "architecture/**",
+    "security/threat-model/**"
+  ],
+  "humanOwned": [
+    "architecture/policy.json",
+    "architecture/decisions/**",
+    "security/threat-model/exceptions/**"
+  ]
+}

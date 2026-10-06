@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "reviewedCommit": "REPLACE_WITH_COMMIT",
+  "trustZones": [
+    {
+      "id": "internet",
+      "name": "Internet"
+    },
+    {
+      "id": "application",
+      "name": "Application"
+    }
+  ],
+  "trustBoundaries": [
+    {
+      "id": "internet-to-application",
+      "from": "internet",
+      "to": "application"
+    }
+  ],
+  "elements": [
+    {
+      "id": "user",
+      "type": "external-entity",
+      "name": "User",
+      "trustZone": "internet",
+      "componentId": null
+    },
+    {
+      "id": "example-api",
+      "type": "process",
+      "name": "Example API",
+      "trustZone": "application",
+      "componentId": "example-api"
+    }
+  ],
+  "flows": [
+    {
+      "id": "user-to-example-api",
+      "source": "user",
+      "target": "example-api",
+      "data": [
+        "request"
+      ],
+      "classifications": [
+        "internal"
+      ],
+      "trustBoundary": "internet-to-application"
+    }
+  ]
+}

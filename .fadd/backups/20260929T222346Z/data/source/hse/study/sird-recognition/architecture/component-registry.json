@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "1.0",
+  "components": [
+    {
+      "id": "sird-recognition",
+      "name": "Stateless OCR Runtime",
+      "kind": "library",
+      "owner": "recognition-runtime",
+      "paths": [
+        "src/sird_recognition/**"
+      ],
+      "allowedDependencies": [],
+      "publicInterfaces": [
+        "python:sird_recognition.runtime.RecognizerRuntime"
+      ],
+      "dataClassifications": [
+        "internal",
+        "document-derived"
+      ],
+      "diagramIds": [
+        "ocr"
+      ]
+    },
+    {
+      "id": "sird-workflow",
+      "name": "SIRD Task and Process Workflow",
+      "kind": "service",
+      "owner": "integration-runtime",
+      "paths": [
+        "integration/src/sird_workflow/**",
+        "integration/migrations/**"
+      ],
+      "allowedDependencies": [
+        "sird-recognition"
+      ],
+      "publicInterfaces": [
+        "python:sird_workflow.service.WorkflowService",
+        "kafka:sird.task.v1",
+        "kafka:sird.result.v1",
+        "kafka:sird.task.dlq.v1"
+      ],
+      "dataClassifications": [
+        "internal",
+        "task-metadata",
+        "document-derived"
+      ],
+      "diagramIds": [
+        "workflow",
+        "process"
+      ]
+    },
+    {
+      "id": "sird-verification",
+      "name": "OCR Verification",
+      "kind": "verification",
+      "owner": "verification",
+      "paths": [
+        "verification/src/**",
+        "verification/tests/**"
+      ],
+      "allowedDependencies": [
+        "sird-recognition",
+        "sird-workflow"
+      ],
+      "publicInterfaces": [
+        "python:sird_verification.oracles",
+        "python:sird_verification.metrics"
+      ],
+      "dataClassifications": [
+        "test-corpus",
+        "metrics"
+      ],
+      "diagramIds": [
+        "verification"
+      ]
+    },
+    {
+      "id": "sird-experiment",
+      "name": "Independent OCR Experiment",
+      "kind": "verification",
+      "owner": "experiment",
+      "paths": [
+        "experiment/src/**",
+        "experiment/tests/**"
+      ],
+      "allowedDependencies": [
+        "sird-recognition"
+      ],
+      "publicInterfaces": [
+        "python:sird_experiment.runner",
+        "python:sird_experiment.evaluator"
+      ],
+      "dataClassifications": [
+        "experiment-metadata",
+        "metrics"
+      ],
+      "diagramIds": [
+        "experiment"
+      ]
+    },
+    {
+      "id": "sird-test-app",
+      "name": "Test-only HTTP Adapter",
+      "kind": "service",
+      "owner": "verification",
+      "paths": [
+        "test_app/src/**",
+        "test_app/tests/**"
+      ],
+      "allowedDependencies": [
+        "sird-recognition"
+      ],
+      "publicInterfaces": [
+        "http:test-adapter"
+      ],
+      "dataClassifications": [
+        "test-only"
+      ],
+      "diagramIds": []
+    },
+    {
+      "id": "sird-local-profile",
+      "name": "Local Integration Profile",
+      "kind": "infrastructure",
+      "owner": "integration-runtime",
+      "paths": [
+        "compose.integration.yml",
+        "integration/start.sh",
+        "integration/certs/**"
+      ],
+      "allowedDependencies": [
+        "sird-workflow"
+      ],
+      "publicInterfaces": [
+        "tls:localhost:9094",
+        "tcp:localhost:5432",
+        "http:localhost:9000"
+      ],
+      "dataClassifications": [
+        "development-only"
+      ],
+      "diagramIds": [
+        "kafka",
+        "postgres",
+        "rustfs"
+      ]
+    }
+  ]
+}

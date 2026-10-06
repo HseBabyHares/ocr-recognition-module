@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oh-my-pi.dev/schemas/fadd/bootstrap-result.schema.json",
+  "title": "OMP FADD repository bootstrap result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "ready",
+    "repository",
+    "observed",
+    "configuredFiles",
+    "checks",
+    "humanRequired",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "status": {"const": "ready"},
+    "ready": {"const": true},
+    "repository": {"type": "string", "minLength": 1},
+    "observed": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "languages": {},
+        "ci": {},
+        "commands": {}
+      }
+    },
+    "configuredFiles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(?:\\.fadd/bootstrap-result\\.json|\\.github/workflows/fadd-[^/]+\\.yml|\\.gitlab-ci\\.fadd\\.yml|architecture/.+|security/threat-model/.+|quality/.+|container/.+|docs/spec-index\\.json|tools/gc/policy\\.json|AGENTS\\.md)$"
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "evidence"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "status": {"enum": ["pass", "advisory"]},
+          "evidence": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "humanRequired": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {"type": "string", "minLength": 1},
+          {"type": "object"}
+        ]
+      }
+    },
+    "summary": {"type": "string", "minLength": 1}
+  }
+}

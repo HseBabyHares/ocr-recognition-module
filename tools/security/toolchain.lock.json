@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-08-28",
+  "tools": {
+    "trivy": {
+      "command": "trivy",
+      "version": "0.74.0",
+      "versionArgs": ["--version"],
+      "repository": "aquasecurity/trivy",
+      "tag": "v0.74.0",
+      "install": "github-release"
+    },
+    "semgrep": {
+      "command": "semgrep",
+      "version": "1.174.0",
+      "versionArgs": ["--version"],
+      "package": "semgrep",
+      "install": "python-venv"
+    },
+    "osv-scanner": {
+      "command": "osv-scanner",
+      "version": "2.5.1",
+      "versionArgs": ["--version"],
+      "repository": "google/osv-scanner",
+      "tag": "v2.5.1",
+      "install": "github-release"
+    },
+    "gitleaks": {
+      "command": "gitleaks",
+      "version": "8.30.0",
+      "versionArgs": ["version"],
+      "repository": "gitleaks/gitleaks",
+      "tag": "v8.30.0",
+      "install": "github-release"
+    }
+  }
+}

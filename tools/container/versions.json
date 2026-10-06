@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-08-28",
+  "tools": {
+    "hadolint": {"command": "hadolint", "version": "2.15.1", "repository": "hadolint/hadolint", "tag": "v2.15.1"},
+    "dive": {"command": "dive", "version": "0.13.1", "repository": "wagoodman/dive", "tag": "v0.13.1"},
+    "syft": {"command": "syft", "version": "1.51.0", "repository": "anchore/syft", "tag": "v1.51.0"},
+    "docker-image-size-limit": {"command": "disl", "version": "2.2.0", "package": "docker-image-size-limit"}
+  }
+}

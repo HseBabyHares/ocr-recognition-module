@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "threats": [
+    {
+      "id": "TM-SPO-001",
+      "subject": {
+        "type": "flow",
+        "id": "user-to-example-api"
+      },
+      "stride": "spoofing",
+      "scenario": "Replace with a concrete abuse scenario.",
+      "risk": {
+        "likelihood": "medium",
+        "impact": "high",
+        "level": "high"
+      },
+      "response": "mitigate",
+      "controls": [
+        "CTRL-AUTH-001"
+      ],
+      "verification": [
+        "tests/security/test_auth.py"
+      ],
+      "owner": "example-team",
+      "status": "open"
+    },
+    {
+      "id": "TM-TAM-001",
+      "subject": {
+        "type": "flow",
+        "id": "user-to-example-api"
+      },
+      "stride": "tampering",
+      "scenario": "Replace with a concrete tampering scenario.",
+      "risk": {
+        "likelihood": "medium",
+        "impact": "high",
+        "level": "high"
+      },
+      "response": "mitigate",
+      "controls": [
+        "CTRL-INTEGRITY-001"
+      ],
+      "verification": [
+        "scanner:semgrep/project-integrity"
+      ],
+      "owner": "example-team",
+      "status": "open"
+    },
+    {
+      "id": "TM-INF-001",
+      "subject": {
+        "type": "flow",
+        "id": "user-to-example-api"
+      },
+      "stride": "information-disclosure",
+      "scenario": "Replace with a concrete disclosure scenario.",
+      "risk": {
+        "likelihood": "medium",
+        "impact": "high",
+        "level": "high"
+      },
+      "response": "mitigate",
+      "controls": [
+        "CTRL-TLS-001"
+      ],
+      "verification": [
+        "test:integration/tls"
+      ],
+      "owner": "example-team",
+      "status": "open"
+    }
+  ]
+}

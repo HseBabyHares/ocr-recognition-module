@@ -1,0 +1,31 @@
+rules:
+  - id: fadd-python-eval
+    languages: [python]
+    message: Dynamic eval executes untrusted code.
+    severity: ERROR
+    pattern: eval(...)
+  - id: fadd-python-exec
+    languages: [python]
+    message: Dynamic exec executes untrusted code.
+    severity: ERROR
+    pattern: exec(...)
+  - id: fadd-subprocess-shell-true
+    languages: [python]
+    message: subprocess with shell=True expands command-injection surface.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.$F(..., shell=True, ...)
+          - pattern: $P.$F(..., shell=True, ...)
+  - id: fadd-requests-verify-false
+    languages: [python]
+    message: TLS verification is disabled.
+    severity: ERROR
+    pattern: requests.$METHOD(..., verify=False, ...)
+  - id: fadd-yaml-unsafe-load
+    languages: [python]
+    message: yaml.load without SafeLoader may instantiate unsafe objects.
+    severity: ERROR
+    patterns:
+      - pattern: yaml.load(...)
+      - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)

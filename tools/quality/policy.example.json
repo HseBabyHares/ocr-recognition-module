@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "status": "template-unconfigured",
+  "pythonPaths": ["src", "tests"],
+  "mypyPaths": ["src"],
+  "testPaths": ["tests"],
+  "complexity": {
+    "maxCyclomatic": 6,
+    "maxCognitive": 12,
+    "maxNesting": 4,
+    "maxArguments": 5,
+    "maxLocals": 5,
+    "maxReturns": 5,
+    "maxFunctionLines": 50,
+    "maxModuleLines": 500
+  },
+  "coverage": {
+    "mode": "ratchet",
+    "minimumChangedPercent": 95,
+    "minimumOverallPercent": null
+  },
+  "mutation": {
+    "enabledOnPullRequest": false,
+    "criticalPaths": []
+  },
+  "waivers": []
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-08-28",
+  "tools": {
+    "actionlint": {"command": "actionlint", "version": "1.7.12", "repository": "rhysd/actionlint", "tag": "v1.7.12", "install": "github-release"},
+    "shellcheck": {"command": "shellcheck", "version": "0.11.0", "repository": "koalaman/shellcheck", "tag": "v0.11.0", "install": "github-release"},
+    "check-jsonschema": {"command": "check-jsonschema", "version": "0.38.0", "package": "check-jsonschema", "install": "python-venv"},
+    "zizmor": {"command": "zizmor", "version": "1.29.0", "package": "zizmor", "install": "python-venv"}
+  }
+}

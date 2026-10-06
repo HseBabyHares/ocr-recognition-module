@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "views": [
+    {"id": "system-context", "type": "c4-system-context", "source": "architecture/sird-ocr.architecture.json#task-flow"},
+    {"id": "container", "type": "c4-container", "source": "architecture/sird-ocr.architecture.json#task-flow"},
+    {"id": "deployment", "type": "deployment", "source": "architecture/sird-ocr.architecture.json#identity"},
+    {"id": "data-model", "type": "data-model", "source": "architecture/sird-ocr.architecture.json#durability"},
+    {"id": "sequence", "type": "sequence", "source": "architecture/sird-ocr.architecture.json#sequence"},
+    {"id": "state", "type": "state", "source": "architecture/sird-ocr.architecture.json#state"}
+  ]
+}

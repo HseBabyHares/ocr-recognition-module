@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.1",
+  "generatedAt": "2026-08-28",
+  "python": "3.11+",
+  "packages": {
+    "ruff": "0.16.5",
+    "flake8": "7.3.0",
+    "wemake-python-styleguide": "1.8.0",
+    "mypy": "2.3.1",
+    "import-linter": "2.13",
+    "pytest": "9.1.1",
+    "pytest-randomly": "4.0.1",
+    "coverage": "7.15.4",
+    "pytest-cov": "7.0.0",
+    "diff-cover": "10.5.1",
+    "mutmut": "3.7.0",
+    "docker-image-size-limit": "2.2.0"
+  }
+}

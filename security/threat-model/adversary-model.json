@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0",
+  "title": "SIRD OCR Integration Adversary Model",
+  "scope": "Task submission and status/result response, Kafka task/result/DLQ transport, Process Service, stateless OCR runtime, PostgreSQL workflow state, RustFS artifacts, and workload identity boundaries shown in security/threat-model/dfd.json and architecture/rendered/sird-ocr-dfd.html.",
+  "securityObjectives": [
+    "Accept task and result operations only from authorized workloads.",
+    "Preserve task, attempt, offset, outbox, artifact, and result integrity.",
+    "Prevent unauthorized disclosure of document-derived data, task metadata, and credentials.",
+    "Bound resource consumption and preserve partition progress under malformed or failing work.",
+    "Keep terminal outcomes and security-relevant actions attributable to a workload identity."
+  ],
+  "assets": [
+    {"id": "A1", "name": "Task and request metadata", "classification": "task-metadata", "locations": ["task-service", "kafka", "postgres"]},
+    {"id": "A2", "name": "Document artifacts and OCR-derived content", "classification": "document-derived", "locations": ["rustfs", "process-service", "ocr-runtime", "kafka"]},
+    {"id": "A3", "name": "Attempt, fencing, retry, outbox, and offset state", "classification": "workflow-state", "locations": ["postgres", "kafka", "process-service"]},
+    {"id": "A4", "name": "Workload credentials, SVIDs, trust bundles, and role mappings", "classification": "identity", "locations": ["spiffe", "task-service", "process-service", "kafka"]},
+    {"id": "A5", "name": "Terminal result and dead-letter records", "classification": "task-metadata", "locations": ["postgres", "kafka", "sird-backend"]}
+  ],
+  "attackers": [
+    {
+      "id": "ADV-01",
+      "name": "Unauthorized external caller",
+      "position": "outside the application trust zone",
+      "capabilities": ["Send network requests to an exposed Task Service endpoint", "Replay or modify task identifiers and capabilities", "Submit malformed or high-volume tasks"],
+      "cannotAssume": ["A valid workload identity", "Kafka, PostgreSQL, or RustFS network access", "SIRD end-user authorization"],
+      "goals": ["Impersonate SIRD", "Read or alter document-derived data", "Exhaust task or OCR capacity"]
+    },
+    {
+      "id": "ADV-02",
+      "name": "Compromised integration workload",
+      "position": "inside the application trust zone with one valid workload identity",
+      "capabilities": ["Invoke peer service operations permitted by deployment policy", "Attempt Kafka publication or consumption", "Submit stale, duplicated, or forged workflow messages"],
+      "cannotAssume": ["Database superuser access", "Other workload roles", "Valid fencing token for another task"],
+      "goals": ["Elevate from one service role", "Tamper with workflow state or result events", "Read data outside assigned tasks"]
+    },
+    {
+      "id": "ADV-03",
+      "name": "Malicious or compromised operator",
+      "position": "deployment and configuration control plane",
+      "capabilities": ["Change certificates, ACLs, policies, retention, or deployment configuration", "Read service logs and operational stores", "Roll out a modified workload"],
+      "cannotAssume": ["Human approval for production risk acceptance", "A valid audit record for unauthorized changes"],
+      "goals": ["Disable trust boundaries", "Expose artifacts or credentials", "Erase or repudiate workflow actions"]
+    },
+    {
+      "id": "ADV-04",
+      "name": "Malicious document or task producer",
+      "position": "authorized SIRD request path but controls the document bytes and task parameters",
+      "capabilities": ["Provide malformed, oversized, compressed, or parser-hostile content", "Choose repeated task identifiers within caller authority"],
+      "cannotAssume": ["Unbounded artifact size or lifetime", "Other task ownership"],
+      "goals": ["Trigger decoder faults", "Exhaust CPU, memory, or storage", "Cause incorrect or misleading OCR results"]
+    },
+    {
+      "id": "ADV-05",
+      "name": "Stolen or mis-issued workload identity",
+      "position": "identity boundary with a certificate or SVID-like credential",
+      "capabilities": ["Present a credential before expiry", "Attempt URI SAN, role, trust-bundle, or principal-mapping confusion"],
+      "cannotAssume": ["Correct role authorization", "Valid production trust-bundle issuance", "Kafka ACL permission without mapping"],
+      "goals": ["Spoof a trusted service", "Elevate role", "Bypass ACL or expiry checks"]
+    }
+  ],
+  "assumptionsAndExclusions": [
+    "The local profile is loopback-only and does not prove production network isolation.",
+    "SIRD owns end-user authorization; this integration authorizes workload and task boundaries only.",
+    "Host kernel compromise, PostgreSQL superuser compromise, Kafka cluster administrator compromise, and CA root compromise are outside this bounded application threat model and require deployment-level review.",
+    "SPIFFE/SPIRE issuance, trust-bundle distribution, renewal, and Kafka URI-SAN principal mapping remain production evidence gaps even though identity parsing and role primitives are implemented."
+  ],
+  "dfdSource": "security/threat-model/dfd.json",
+  "renderedDfd": "architecture/rendered/sird-ocr-dfd.html",
+  "threatRecordSource": "security/threat-model/threats.json"
+}

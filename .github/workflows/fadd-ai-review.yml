@@ -1,0 +1,166 @@
+name: FADD AI specification review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main, "release/**"]
+  workflow_dispatch:
+    inputs:
+      base_sha: {description: "Base commit SHA (optional outside dispatch)", required: false, type: string}
+      head_sha: {description: "Head commit SHA (optional outside dispatch)", required: false, type: string}
+      run_codex: {description: "Run Codex review", required: false, default: false, type: boolean}
+      run_openrouter: {description: "Run OpenRouter ensemble", required: false, default: false, type: boolean}
+      confirm_external_data_transfer: {description: "Approve bounded repository data transfer", required: false, default: false, type: boolean}
+
+permissions:
+  contents: read
+
+env:
+  FADD_AI_GATE_MODE: ${{ vars.FADD_AI_GATE_MODE || 'shadow' }}
+
+jobs:
+  prepare:
+    name: prepare bounded review context
+    runs-on: ubuntu-latest
+    outputs:
+      complete: ${{ steps.context.outputs.complete }}
+      external_review_allowed: ${{ steps.context.outputs.external_review_allowed }}
+      trusted_source: ${{ steps.range.outputs.trusted_source }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: {node-version: "22"}
+      - name: Resolve trusted comparison range
+        id: range
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          CURRENT_REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          INPUT_BASE: ${{ inputs.base_sha }}
+          INPUT_HEAD: ${{ inputs.head_sha }}
+        run: |
+          set -Eeuo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE"; head="$PR_HEAD"
+            [[ "$PR_REPO" == "$CURRENT_REPO" ]] && trusted=true || trusted=false
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            base="${INPUT_BASE:-HEAD^}"; head="${INPUT_HEAD:-HEAD}"; trusted=true
+          else
+            base="${BEFORE:-HEAD^}"; head="${SHA:-HEAD}"; trusted=true
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "head=$head" >> "$GITHUB_OUTPUT"
+          echo "trusted_source=$trusted" >> "$GITHUB_OUTPUT"
+      - name: Build bounded and redacted review package
+        id: context
+        run: >-
+          node tools/ai-gates/prepare-context.mjs
+          --repo .
+          --base "${{ steps.range.outputs.base }}"
+          --head "${{ steps.range.outputs.head }}"
+          --out artifacts/ai-context
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with: {name: fadd-ai-context, path: artifacts/ai-context, if-no-files-found: error}
+
+  codex:
+    name: Codex read-only review
+    if: >-
+      needs.prepare.outputs.complete == 'true' &&
+      needs.prepare.outputs.trusted_source == 'true' &&
+      (vars.FADD_CODEX_REVIEW == 'true' || inputs.run_codex == true) &&
+      (vars.FADD_EXTERNAL_REVIEW_DATA_APPROVED == 'true' || inputs.confirm_external_data_transfer == true)
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ai-review
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with: {name: fadd-ai-context, path: .}
+      - name: Run official Codex action in read-only mode
+        id: codex
+        uses: openai/codex-action@86365089eb2b84e0a8fb0717b304f8bdcb13b20e # v1.12
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          prompt-file: review-prompt.md
+          output-file: codex-review.json
+          output-schema-file: spec-drift-review.schema.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with: {name: fadd-codex-review, path: codex-review.json, if-no-files-found: error}
+
+  openrouter:
+    name: OpenRouter independent ensemble
+    if: >-
+      needs.prepare.outputs.external_review_allowed == 'true' &&
+      needs.prepare.outputs.trusted_source == 'true' &&
+      (vars.FADD_OPENROUTER_REVIEW == 'true' || inputs.run_openrouter == true) &&
+      (vars.FADD_EXTERNAL_REVIEW_DATA_APPROVED == 'true' || inputs.confirm_external_data_transfer == true)
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ai-review
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: {persist-credentials: false}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with: {name: fadd-ai-context, path: artifacts/ai-context}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: {node-version: "22"}
+      - env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_REVIEW_MODELS: ${{ vars.OPENROUTER_REVIEW_MODELS }}
+          OPENROUTER_REVIEW_DATA_APPROVED: "true"
+        run: >-
+          node tools/ai-gates/openrouter-vote.mjs
+          --context artifacts/ai-context/review-context.json
+          --diff artifacts/ai-context/candidate.diff
+          --prompt artifacts/ai-context/review-prompt.md
+          --schema artifacts/ai-context/spec-drift-review.schema.json
+          --out artifacts/openrouter
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with: {name: fadd-openrouter-review, path: artifacts/openrouter, if-no-files-found: error}
+
+  required-gate:
+    name: FADD AI / required-gate
+    if: always()
+    needs: [prepare, codex, openrouter]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: {node-version: "22"}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.prepare.result == 'success'
+        with: {name: fadd-ai-context, path: artifacts/ai-context}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.codex.result == 'success'
+        with: {name: fadd-codex-review, path: artifacts/codex}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.openrouter.result == 'success'
+        with: {name: fadd-openrouter-review, path: artifacts/openrouter}
+      - name: Aggregate deterministic availability and reviewer verdicts
+        env:
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+          CODEX_RESULT: ${{ needs.codex.result }}
+          OPENROUTER_RESULT: ${{ needs.openrouter.result }}
+        run: >-
+          node tools/ai-gates/verify-delivery-gate.mjs
+          --mode "$FADD_AI_GATE_MODE"
+          --upstream "{\"prepare\":\"$PREPARE_RESULT\"}"
+          --codex artifacts/codex/codex-review.json
+          --openrouter artifacts/openrouter/aggregate.json
+          --out artifacts/ai-required-gate.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with: {name: fadd-ai-required-gate, path: artifacts/ai-required-gate.json, if-no-files-found: error}

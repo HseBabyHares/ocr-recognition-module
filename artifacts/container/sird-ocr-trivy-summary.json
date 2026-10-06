@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "image": "sird-ocr-test:security",
+  "image_digest": "sha256:6e6b9bc81af012ae7deaaa1513b7d4e28b6db584ec812b3280c955296cba2864",
+  "command": "/home/doster/.local/omp-fadd/security/bin/trivy image --scanners vuln --severity HIGH,CRITICAL --format json sird-ocr-test:security",
+  "report_source": "/tmp/sird-ocr-security-trivy.json",
+  "high_critical_count": 96,
+  "pkg_path_observed": false,
+  "note": "The current Trivy database reported OS/SBOM package findings without PkgPath values. This is a test-only image and the result is not a clean security scan."
+}

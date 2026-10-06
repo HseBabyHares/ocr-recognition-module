@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "implemented": {
+    "resource_file": "src/sird_recognition/resources/ocr_labels.json",
+    "parser": "src/sird_recognition/snils_recognition.py",
+    "fixture": "tests/fixtures/ocr/snils_fields.txt",
+    "fields": ["snils_number", "full_name", "birth_date", "birth_place"]
+  },
+  "observed_checks": {
+    "fixture_parser": "5 passed",
+    "root_suite": "121 passed",
+    "integration_suite": "88 passed",
+    "repository_harness": "pass",
+    "yandex_smoke": {
+      "http_status": 422,
+      "diagnostic": "snils_missing_or_invalid",
+      "task_id": "44788214-7d75-4389-9479-cbac951c39ea"
+    }
+  },
+  "gliner_probe": {
+    "model": "urchade/gliner_multi-v2.1",
+    "input": "tests/fixtures/ocr/snils_fields.txt",
+    "result": "candidate extraction ran on CPU-compatible local stack",
+    "observed_limit": "the model labeled the birth date as registration date on both full-text and birth-label context probes",
+    "decision": "do not integrate GLiNER as an authority; use only as optional candidate evidence after deterministic label binding"
+  },
+  "real_image_validation": {
+    "status": "not_run",
+    "reason": "the user's private uploaded image is not present as a repository fixture and was not copied into the workspace",
+    "required_next_evidence": "run the same deployed service against a local fixture file without sending the file to chat"
+  }
+}

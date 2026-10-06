@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "model_id": "urchade/gliner_multi-v2.1",
+  "model_revision": "443d26d654e0324125a96bebd8e796c14ff2efe6",
+  "library": "gliner",
+  "input_fixture": "tests/fixtures/ocr/snils_fields.txt",
+  "runtime": {
+    "python": "3.14",
+    "device": "cpu",
+    "local_files_only": true
+  },
+  "measurement": {
+    "load_seconds": 6.275,
+    "inference_seconds": [0.426, 0.129, 0.179],
+    "output_counts": [4, 4, 4],
+    "max_rss_kb": 3249612
+  },
+  "observed_behavior": {
+    "person": "extracted with high score on fixture",
+    "birth_place": "extracted as a candidate with lower score",
+    "birth_date": "misclassified as registration_date in full-text and birth-label probes"
+  },
+  "decision": "candidate_only; not safe as final field authority; memory exceeds current 1 GiB test pod limit",
+  "limits": [
+    "Text fixture probe is not real-image OCR validation.",
+    "No calibrated probability claim is made from raw model scores.",
+    "No production dependency or deployment change was made by this probe."
+  ]
+}

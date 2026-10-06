@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "scope": "test-only PaddleOCR CPU probe; rejected for integration",
+  "input": "tests/fixtures/ocr/candidate_fields.txt rendered as /tmp/candidate-fields.png",
+  "environment": {
+    "runtime_image": "python:3.11-slim",
+    "paddle": "3.3.1",
+    "paddleocr": "3.7.0",
+    "cpu_limit": 2,
+    "language": "ru",
+    "models": [
+      "PP-OCRv5_server_det_onnx",
+      "eslav_PP-OCRv5_mobile_rec_onnx"
+    ]
+  },
+  "experiments": {
+    "paddle_cpu_without_mkldnn": {
+      "status": "passed",
+      "observed": "PaddleOCR detected and recognized the synthetic Russian fixture with enable_mkldnn=false; one measured prediction took 48.006 seconds after construction",
+      "limits": "single sample; model download and construction were not included in the measured interval"
+    },
+    "paddle_cpu_with_mkldnn": {
+      "status": "failed",
+      "observed": "PaddlePaddle 3.3.1 raised NotImplementedError ConvertPirAttribute2RuntimeAttribute for PP-OCRv5_server_det",
+      "limits": "same Python 3.11 CPU container"
+    },
+    "onnxruntime_cpu": {
+      "status": "passed",
+      "config": {
+        "engine": "onnxruntime",
+        "device": "cpu",
+        "providers": ["CPUExecutionProvider"],
+        "graph_optimization_level": 99,
+        "intra_op_num_threads": 2,
+        "inter_op_num_threads": 1,
+        "execution_mode": "sequential"
+      },
+      "samples_seconds": [10.206, 10.697, 10.964, 12.891],
+      "warm_mean_seconds": 11.517,
+      "recognized_text": [
+        "Фамилия: Иванов Иван Иванович",
+        "112-233-445 95",
+        "Дата регистрации: 15.06.202о",
+        "Дата и место рождения: 3 апреля 1980, г. Москва"
+      ],
+      "limits": "synthetic fixture only; no comparison on the user's JPEG"
+    }
+  },
+  "decision": "Rejected as unnecessary after owner-confirmed local Tesseract plus GLiNER recognition. PaddleOCR is not integrated, not deployed, and has no production acceptance."
+}

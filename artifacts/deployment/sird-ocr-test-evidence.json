@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-27",
+  "scope": "test-only OCR HTTP task adapter",
+  "local_kind": {
+    "cluster": "smartmlops-baseline",
+    "namespace": "sird-ocr-test",
+    "image": "sird-ocr-test:local",
+    "image_digest": "sha256:6e6b9bc81af012ae7deaaa1513b7d4e28b6db584ec812b3280c955296cba2864",
+    "deployment": "sird-ocr-test",
+    "replicas": 1,
+    "rollout": "successful",
+    "openapi_paths": [
+      "/tasks",
+      "/tasks/{task_id}",
+      "/tasks/{task_id}/result"
+    ],
+    "smoke_task_id": "100639b0-ee42-4682-ba49-d2815de4cedc",
+    "smoke_result_status": "completed",
+    "smoke_http_status": 422,
+    "smoke_diagnostic": "snils_missing_or_invalid"
+  },
+  "yandex": {
+    "access_method": "ssh kserve-cp-1 kubectl",
+    "cluster_context_on_control_plane": "kubernetes-admin@kubernetes",
+    "namespace": "sird-ocr-test",
+    "image": "10.96.113.136:5000/sird-ocr-test@sha256:6e6b9bc81af012ae7deaaa1513b7d4e28b6db584ec812b3280c955296cba2864",
+    "image_digest": "sha256:6e6b9bc81af012ae7deaaa1513b7d4e28b6db584ec812b3280c955296cba2864",
+    "deployment": "sird-ocr-test",
+    "replicas": 1,
+    "pod_node": "kserve-wrk-1",
+    "pod_ready": true,
+    "service": "sird-ocr-test",
+    "service_cluster_ip": "10.99.26.248",
+    "openapi_paths": [
+      "/tasks",
+      "/tasks/{task_id}",
+      "/tasks/{task_id}/result"
+    ],
+    "smoke_task_id": "d034b0bc-3eae-447f-aca5-9e36604be3c8",
+    "smoke_result_status": "completed",
+    "smoke_http_status": 422,
+    "smoke_diagnostic": "snils_missing_or_invalid"
+  },
+  "limitations": [
+    "GPT Image API was not called because OPENAI_API_KEY and OPENAI_BASE_URL were absent.",
+    "The image used for smoke was an architecture PNG, so refusal is the expected OCR result.",
+    "This evidence covers the test HTTP adapter deployment, not production gRPC, durable workflow, or production security acceptance.",
+    "The only cluster-scoped Kubernetes object created was the sird-ocr-test Namespace; Deployment and Service are namespaced.",
+    "The repository container gate was not-configured; direct Trivy image scan observed 96 HIGH/CRITICAL findings in the current database, so this test image is not security-clean.",
+    "The Yandex pod uses the shared CPU worker kserve-wrk-1 after explicit exclusion of kserve-wrk-gpu-1.",
+    "The test namespace now enforces namespaced egress denial and startup allowlist checks for Tesseract and tessdata checksums."
+  ]
+}

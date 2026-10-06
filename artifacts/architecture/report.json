@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "status": "not-configured",
+  "profile": "network-service",
+  "changedFiles": [],
+  "errors": [
+    {
+      "rule": "architecture-policy-unconfigured",
+      "status": "template-unconfigured"
+    }
+  ],
+  "warnings": [],
+  "counts": {
+    "components": 0,
+    "views": 0,
+    "dfdElements": 0,
+    "flows": 0,
+    "threats": 0
+  }
+}

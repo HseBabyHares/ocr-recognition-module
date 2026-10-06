@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-04",
+  "scope": "AC-OCR-001..003",
+  "commands": [
+    {
+      "command": "uv run --project verification --group dev python -m sird_verification.acceptance_runner",
+      "status": "blocked",
+      "observed": "stable IDs evaluated with distinct failed and blocked states"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "TEST-OCR-001",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-002",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-003",
+      "status": "passed",
+      "oracle": "verification/tests/test_recognition_oracles.py::test_candidate_refusal_oracles_execute_root_runtime",
+      "evidence": "verification/tests/test_recognition_oracles.py::test_candidate_refusal_oracles_execute_root_runtime",
+      "observed": "zero-candidate refusal oracle executed"
+    },
+    {
+      "id": "TEST-OCR-004",
+      "status": "passed",
+      "oracle": "verification/tests/test_recognition_oracles.py::test_candidate_refusal_oracles_execute_root_runtime",
+      "evidence": "verification/tests/test_recognition_oracles.py::test_candidate_refusal_oracles_execute_root_runtime",
+      "observed": "candidate refusal oracle executed"
+    },
+    {
+      "id": "TEST-OCR-005",
+      "status": "passed",
+      "oracle": "verification/tests/test_recognition_oracles.py::test_strict_selector_rejection_reports_pass_fail_and_blocked",
+      "evidence": "verification/tests/test_recognition_oracles.py::test_strict_selector_rejection_reports_pass_fail_and_blocked",
+      "observed": "strict selector rejection oracle executed"
+    },
+    {
+      "id": "TEST-OCR-006",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-007",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-008",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-009",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-010",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-011",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-012",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-013",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-014",
+      "status": "passed",
+      "oracle": "verification/tests/test_recognition_oracles.py::test_partial_fields_are_compared_exactly",
+      "evidence": "verification/tests/test_recognition_oracles.py::test_partial_fields_are_compared_exactly",
+      "observed": "partial-field preservation oracle executed"
+    },
+    {
+      "id": "TEST-OCR-015",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-016",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-017",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-018",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-019",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-020",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-021",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-022",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-023",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-024",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    },
+    {
+      "id": "TEST-OCR-025",
+      "status": "blocked",
+      "oracle": null,
+      "evidence": null,
+      "observed": "ID-specific executable oracle is not registered"
+    }
+  ],
+  "acceptance": {
+    "AC-OCR-001": {
+      "status": "blocked",
+      "ids": [
+        "TEST-OCR-001",
+        "TEST-OCR-002",
+        "TEST-OCR-003",
+        "TEST-OCR-004",
+        "TEST-OCR-005",
+        "TEST-OCR-006",
+        "TEST-OCR-007",
+        "TEST-OCR-008",
+        "TEST-OCR-009",
+        "TEST-OCR-010",
+        "TEST-OCR-011",
+        "TEST-OCR-012",
+        "TEST-OCR-013",
+        "TEST-OCR-014",
+        "TEST-OCR-015",
+        "TEST-OCR-016",
+        "TEST-OCR-017",
+        "TEST-OCR-018",
+        "TEST-OCR-021"
+      ],
+      "reason": "AC-OCR-001 cannot pass while any required ID is blocked, not_run, or failed"
+    },
+    "AC-OCR-002": {
+      "status": "blocked",
+      "ids": [
+        "TEST-OCR-003",
+        "TEST-OCR-004",
+        "TEST-OCR-005",
+        "TEST-OCR-007",
+        "TEST-OCR-008",
+        "TEST-OCR-009",
+        "TEST-OCR-011",
+        "TEST-OCR-012",
+        "TEST-OCR-014",
+        "TEST-OCR-017",
+        "TEST-OCR-023",
+        "TEST-OCR-024",
+        "TEST-OCR-025"
+      ],
+      "reason": "AC-OCR-002 requires protected corpus, predeclared numeric boundaries, and independent resource evidence"
+    },
+    "AC-OCR-003": {
+      "status": "blocked",
+      "ids": [
+        "TEST-OCR-018",
+        "TEST-OCR-019",
+        "TEST-OCR-020",
+        "TEST-OCR-022",
+        "TEST-OCR-023",
+        "TEST-OCR-024",
+        "TEST-OCR-025"
+      ],
+      "reason": "AC-OCR-003 requires protected corpus, replay evidence, and independent metric recomputation"
+    }
+  }
+}

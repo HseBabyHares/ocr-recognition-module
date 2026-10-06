@@ -27,7 +27,7 @@ packages = ["src/sird_recognition"]
 target-version = "py313"
 line-length = 79
 src = ["src", "tests"]
-extend-exclude = [".lsp"]
+extend-exclude = [".lsp", "src/sird_recognition/_proto"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]

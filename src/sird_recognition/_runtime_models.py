@@ -52,6 +52,7 @@ class RecognitionResponse:
     evidence_refs: tuple[str, ...]
     execution: Mapping[str, object] = field(default_factory=dict)
     technical_code: TechnicalCode | str | None = None
+    technical_reason: str | None = None
     retryable: bool = False
     subject_diagnostic: SubjectDiagnostic | None = None
     task_id: str | None = None

@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "scope": "test-only isolated GLiNER Helm profile",
+  "image": "10.96.113.136:5000/sird-gliner-test",
+  "image_digest": "sha256:fc73ca7df671ce3783a3d50398993cde6f6eba7bd8b9c892fda406285f56ff18",
+  "checks": {
+    "model_contract": {
+      "status": "blocked",
+      "observed": "urchade/gliner_multi-v2.1 loaded on CPU and returned candidates, but birth date was mislabeled as registration date on the fixture",
+      "evidence": "artifacts/ocr/gliner-probe.json"
+    },
+    "fixture_tests": {
+      "status": "passed",
+      "observed": "candidate adapter tests 5 passed; targeted recognition tests 13 passed; test_app suite 7 passed",
+      "evidence": "tests/test_candidate_extraction.py, tests/test_snils_recognition.py, and test output"
+    },
+    "offline_load": {
+      "status": "passed",
+      "observed": "docker run --read-only --tmpfs /tmp --network none with HF_HUB_OFFLINE and TRANSFORMERS_OFFLINE loaded GLiNERCandidateExtractor; all embedded model/backbone checksums passed",
+      "evidence": "Dockerfile.gliner startup output"
+    },
+    "helm_chart": {
+      "status": "passed",
+      "observed": "helm lint passed; helm template rendered pullable kind and Yandex image profiles, pinned digest support, security context, CPU/memory limits, probes, deny-egress NetworkPolicy, and Yandex node affinity",
+      "evidence": "helm lint deploy/helm/sird-gliner-test and helm template output"
+    },
+    "kind_helm_rollout": {
+      "status": "passed",
+      "observed": "Helm release sird-gliner-test revision 1 deployed in namespace sird-gliner-test; pod sird-gliner-test-5d947c9d6f-dz75r reached Ready with zero restarts; pod imageID was sha256:01c4a860547dd9b1376e94116854608c189bcee79ceee3507494a1197a2c7990 (the config digest for the local sird-gliner-test:local tag, corresponding to manifest sha256:fc73ca7df671ce3783a3d50398993cde6f6eba7bd8b9c892fda406285f56ff18)",
+      "evidence": "helm upgrade --install --kube-context kind-smartmlops-baseline and kubectl get pod"
+    },
+    "kind_helm_fixture_recognition": {
+      "status": "passed",
+      "observed": "Helm-managed kind service port-forward accepted candidate_fields.png and returned verified SNILS 11223344595, full_name, birth_date 1980-04-03, and birth_place г. Москва without returning the registration date",
+      "evidence": "kind Helm port-forward smoke task edefb09a-e409-48d7-9632-a2047ee7a25c"
+    },
+    "yandex_helm_rollout": {
+      "status": "passed",
+      "observed": "Helm release sird-gliner-test revision 2 deployed in namespace sird-gliner-test; pod sird-gliner-test-5f87779957-r4mc8 reached Ready with zero restarts on kserve-wrk-1; imageID was 10.96.113.136:5000/sird-gliner-test@sha256:fc73ca7df671ce3783a3d50398993cde6f6eba7bd8b9c892fda406285f56ff18. The release was subsequently uninstalled at the user's request.",
+      "evidence": "ssh kserve-cp-1 helm upgrade, kubectl get pod, and helm uninstall"
+    },
+    "yandex_helm_fixture_recognition": {
+      "status": "passed",
+      "observed": "Helm-managed Yandex service port-forward accepted candidate_fields.png and returned verified SNILS 11223344595, full_name, birth_date 1980-04-03, and birth_place г. Москва without returning the registration date. The release and its image digest were subsequently removed at the user's request.",
+      "evidence": "Helm-managed Yandex port-forward smoke task bff18a31-0af8-483a-8def-adddf5659ce0; the smoke ran on the same pod sird-gliner-test-5f87779957-r4mc8 before Helm revision 2, and the pod remained Ready through the revision 2 upgrade"
+    },
+    "latency": {
+      "status": "not_run",
+      "observed": "no representative workload benchmark or acceptance threshold was applied",
+      "evidence": null
+    },
+    "real_image": {
+      "status": "not_run",
+      "observed": "the user's private image is not stored as a repository fixture",
+      "evidence": null
+    },
+    "security": {
+      "status": "passed",
+      "observed": "Helm-rendered profiles use non-root RuntimeDefault seccomp, read-only root filesystem, 4Gi CPU profile, pinned model/backbone checksums, local-only model loading, namespaced egress deny, and size-limited writable /tmp",
+      "evidence": "deploy/helm/sird-gliner-test"
+    }
+  },
+  "limitations": [
+    "GLiNER candidates are used internally by the recognition service; candidate evidence is not yet exposed in the HTTP result schema.",
+    "Birth-date selection remains deterministic because the model misclassified the fixture birth date as registration date.",
+    "No private real-image validation was performed."
+  ]
+}

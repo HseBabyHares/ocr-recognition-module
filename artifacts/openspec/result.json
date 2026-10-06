@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "check": "openspec",
+  "status": "pass",
+  "repository": "/data/source/hse/study/sird-recognition",
+  "activeChanges": [
+    "add-gliner-decision-stage",
+    "specify-sird-ocr-integration"
+  ],
+  "validation": {
+    "items": [
+      {
+        "id": "add-gliner-decision-stage",
+        "type": "change",
+        "valid": true,
+        "issues": [],
+        "durationMs": 18
+      },
+      {
+        "id": "specify-sird-ocr-integration",
+        "type": "change",
+        "valid": true,
+        "issues": [],
+        "durationMs": 31
+      }
+    ],
+    "summary": {
+      "totals": {
+        "items": 2,
+        "passed": 2,
+        "failed": 0
+      },
+      "byType": {
+        "change": {
+          "items": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "spec": {
+          "items": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
+    },
+    "version": "1.0",
+    "root": {
+      "path": "/data/source/hse/study/sird-recognition",
+      "source": "nearest"
+    }
+  }
+}

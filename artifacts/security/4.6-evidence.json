@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "scope": "test-only sird-ocr-test namespace and integration security primitives",
+  "observed_controls": {
+    "artifact_capability": {
+      "implementation": "integration/src/sird_workflow/artifact_security.py",
+      "evidence": "integration/tests/test_artifact_security.py",
+      "status": "verified_by_focused_tests"
+    },
+    "decoder_limits_and_allowlist": {
+      "implementation": "src/sird_recognition/decoder_security.py",
+      "evidence": "root decoder security tests",
+      "status": "verified_by_focused_tests"
+    },
+    "kafka_tls_defaults": {
+      "implementation": "integration/src/sird_workflow/producer.py and consumer.py",
+      "evidence": "integration/tests/test_identity.py and test_mtls.py",
+      "status": "verified_as_fail_closed_configuration"
+    },
+    "workload_role_policy": {
+      "implementation": "integration/src/sird_workflow/spiffe.py",
+      "evidence": "integration/tests/test_spiffe.py",
+      "status": "verified_as_pure_policy_primitive"
+    },
+    "runtime_model_allowlist": {
+      "implementation": "test_app/src/sird_test_app/local_snils.py",
+      "evidence": "test_app/tests/test_local_snils.py and checksum-guarded container startup",
+      "status": "verified_in_test_deployment"
+    },
+    "network_and_process_boundary": {
+      "implementation": "deploy/sird-ocr-test/deployment.yaml and network-policy.yaml",
+      "evidence": "kind and Yandex rollout plus /tasks smoke",
+      "status": "verified_in_test_namespace"
+    },
+    "safe_logs_and_cleanup": {
+      "implementation": "stdin/stdout Tesseract invocation and refusal-only HTTP boundary",
+      "evidence": "no document values or bytes are emitted by the test adapter; no scratch directory is used",
+      "status": "verified_for_test_adapter_scope"
+    }
+  },
+  "residual_blockers": [
+    "Production SPIFFE/SPIRE Workload API acquisition and mTLS wiring are not integrated into the production gRPC boundary.",
+    "Kafka topic/group ACL behavior has not been exercised against a production-like Kafka deployment in sird-ocr-test.",
+    "DecoderSandbox is a process-local guard; an OS-level decoder sandbox is not implemented.",
+    "Protected reference-data separation is covered by corpus primitives but not by a deployed independent evaluator in this namespace.",
+    "The shared spire-controller-manager is CrashLoopBackOff because ClusterStaticEntry CRD is absent; it was not modified.",
+    "The test image has 96 HIGH/CRITICAL Trivy findings in the current database and is not production security-clean."
+  ],
+  "verdict": "partial_test_namespace_controls; task_4_6_remains_open"
+}

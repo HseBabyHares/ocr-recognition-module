@@ -1,3 +1,6 @@
 [flake8]
 max-line-length = 79
 select = WPS,E999
+per-file-ignores =
+    src/sird_recognition/_proto/sird/ocr/v1/recognize_pb2.py:E501,WPS116,WPS432,WPS421
+    src/sird_recognition/_proto/sird/ocr/v1/recognize_pb2_grpc.py:E501,WPS116,WPS229,WPS211,WPS602

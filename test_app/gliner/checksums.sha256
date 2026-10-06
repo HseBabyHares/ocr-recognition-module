@@ -1,0 +1,6 @@
+2100142f31627531497850659dcb3821c99d5e71c08a8e01a98e4b11ef32a199  /opt/models/gliner/model.safetensors
+13c8d666d62a7bc4ac8f040aab68e942c861f93303156cc28f5c7e885d86d6e3  /opt/models/gliner/spm.model
+1f3ceb30dfe12e3cc095a5085b2c7b231148a98045f0ddc74f79940693872a80  /opt/models/gliner/gliner_config.json
+bcffcd343dc5efa5ef2d5a58d2b405eed108f01cc45b48d0a907b333ec41801f  /opt/models/mdeberta/config.json
+3f3978e0c036f2c2588cac34a6047cbb0af0b0dc1814254e291028529805496d  /opt/models/mdeberta/tokenizer_config.json
+13c8d666d62a7bc4ac8f040aab68e942c861f93303156cc28f5c7e885d86d6e3  /opt/models/mdeberta/spm.model

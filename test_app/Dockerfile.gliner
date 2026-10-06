@@ -1,0 +1,55 @@
+FROM python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    GLINER_MODEL_DIR=/opt/models/gliner \
+    HF_HOME=/opt/models/huggingface \
+    TRANSFORMERS_CACHE=/opt/models/huggingface
+
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        libglib2.0-0 \
+        libgl1 \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+        tesseract-ocr-rus \
+    && rm -rf /var/lib/apt/lists/*
+COPY pyproject.toml uv.lock /build/
+COPY src /build/src
+COPY test_app/pyproject.toml /build/test_app/pyproject.toml
+COPY test_app/src /build/test_app/src
+RUN pip install --no-cache-dir /build /build/test_app
+
+
+# Keep the inference stack explicit. The model is fetched and verified during build.
+RUN pip install --no-cache-dir \
+      torch==2.9.0 \
+      --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir \
+      gliner==0.2.24 \
+      granian==2.8.3 \
+      litestar==2.24.0 \
+      protobuf==6.31.1 \
+      tiktoken==0.14.0 \
+      huggingface-hub==1.5.0 \
+    && useradd --create-home --uid 10001 appuser \
+    && mkdir -p /app "${GLINER_MODEL_DIR}" \
+    && chown -R 10001:10001 /app
+COPY test_app/gliner /build/gliner
+RUN python /build/gliner/fetch_model.py \
+      --model-dir /opt/models/gliner \
+      --backbone-dir /opt/models/mdeberta \
+      --checksums /build/gliner/checksums.sha256 \
+    && cp /build/gliner/checksums.sha256 /opt/models/checksums.sha256 \
+    && chown -R 10001:10001 /opt/models
+
+
+
+USER 10001:10001
+EXPOSE 8000
+
+# The application currently exposes the test adapter only. Startup verification
+# prevents readiness when an embedded artifact is missing or altered.
+CMD ["sh", "-ec", "sha256sum -c /opt/models/checksums.sha256 && exec granian --interface asgi --host 0.0.0.0 --port 8000 sird_test_app.local_snils:app"]

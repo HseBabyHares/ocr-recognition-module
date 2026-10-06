@@ -44,6 +44,8 @@ root = [
     "integration/src",
     "integration/tests",
     "experiment/src",
+    "experiment/tests",
     "verification/src",
     "test_app/src",
+    "test_app/tests",
 ]

@@ -23,6 +23,7 @@ from sird_recognition.contracts import stages as _stages
 RecognitionError = _runtime_request.RecognitionError
 RecognitionResponse = _runtime_models.RecognitionResponse
 RecognizeRequest = _runtime_models.RecognizeRequest
+FormResolution = _runtime_models.FormResolution
 _ResponseState = _runtime_models._ResponseState
 
 ExecuteProfilePort = _ports.ExecuteProfilePort

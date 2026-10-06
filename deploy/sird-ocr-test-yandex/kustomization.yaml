@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../sird-ocr-test
+
+patches:
+  - path: cpu-worker-affinity.yaml
+
+images:
+  - name: sird-ocr-test
+    newName: 10.96.113.136:5000/sird-ocr-test
+    digest: sha256:6f9ccde564023d451d69a49a51be445583a3f9acc996bd7280dcb0a34ee42e85

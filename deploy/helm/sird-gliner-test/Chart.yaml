@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sird-gliner-test
+description: Isolated test profile for the optional GLiNER candidate stage
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

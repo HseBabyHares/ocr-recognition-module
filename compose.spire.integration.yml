@@ -1,0 +1,75 @@
+name: sird-recognition-spire
+
+services:
+  spire-server:
+    image: ghcr.io/spiffe/spire-server:1.13.2
+    command:
+      - -config
+      - /etc/spire/server/server.conf
+    volumes:
+      - ./integration/spire/server.conf:/etc/spire/server/server.conf:ro
+      - ./integration/spire/runtime:/run/spire/upstream:ro
+      - spire-server-data:/var/lib/spire/server
+      - spire-server-run:/run/spire/server
+    healthcheck:
+      test:
+        - CMD
+        - /opt/spire/bin/spire-server
+        - healthcheck
+        - -socketPath
+        - /run/spire/server/api.sock
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  spire-agent:
+    image: ghcr.io/spiffe/spire-agent:1.13.2
+    pid: host
+    depends_on:
+      spire-server:
+        condition: service_healthy
+    volumes:
+      - ./integration/spire/agent.conf:/etc/spire/agent/agent.conf:ro
+      - ./integration/spire/runtime:/run/spire/bootstrap:ro
+      - spire-agent-data:/var/lib/spire/agent
+      - spire-agent-run:/run/spire/agent
+    command:
+      - -config
+      - /etc/spire/agent/agent.conf
+      - -joinToken
+      - ${SPIRE_JOIN_TOKEN:-invalid-local-token}
+    healthcheck:
+      test:
+        - CMD
+        - /opt/spire/bin/spire-agent
+        - healthcheck
+        - -socketPath
+        - /run/spire/agent/public/api.sock
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  spire-probe:
+    image: ghcr.io/spiffe/spire-agent:1.13.2
+    user: "10001:10001"
+    depends_on:
+      spire-agent:
+        condition: service_started
+    volumes:
+      - spire-agent-run:/run/spire/agent:ro
+    entrypoint: ["/opt/spire/bin/spire-agent"]
+    command:
+      - api
+      - fetch
+      - x509
+      - -socketPath
+      - /run/spire/agent/public/api.sock
+      - -output
+      - json
+    restart: "no"
+
+volumes:
+  spire-server-data:
+  spire-server-run:
+  spire-agent-data:
+  spire-agent-run:

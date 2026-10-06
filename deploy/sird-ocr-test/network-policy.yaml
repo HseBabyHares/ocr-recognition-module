@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sird-ocr-test-deny-egress
+  namespace: sird-ocr-test
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sird-ocr-test
+  policyTypes:
+    - Egress
+  egress: []

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sird-gliner-test.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sird-gliner-test.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sird-gliner-test.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sird-gliner-test.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        seccompProfile:
+          type: {{ .Values.securityContext.seccompProfile.type }}
+      {{- with .Values.nodeAffinity }}
+      affinity:
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: {{ .Values.tmp.sizeLimit }}
+      containers:
+        - name: {{ include "sird-gliner-test.name" . }}
+          {{- if .Values.image.digest }}
+          image: {{ .Values.image.repository }}@{{ .Values.image.digest }}
+          {{- else }}
+          image: {{ .Values.image.repository }}:{{ required "image.tag is required when image.digest is empty" .Values.image.tag }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+          env:
+            - name: SIRD_GLINER_ENABLED
+              value: {{ ternary "1" "0" .Values.model.enabled | quote }}
+            - name: SIRD_GLINER_MODEL_DIR
+              value: {{ .Values.model.directory | quote }}
+            - name: HF_HUB_OFFLINE
+              value: {{ .Values.model.hubOffline | quote }}
+            - name: TRANSFORMERS_OFFLINE
+              value: {{ .Values.model.transformersOffline | quote }}
+            - name: SIRD_TESSERACT_SHA256
+              value: {{ .Values.tessdata.implementationSha256 | quote }}
+            - name: SIRD_TESSDATA_SHA256
+              value: {{ .Values.tessdata.dataSha256 | quote }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /schema/openapi.json
+              port: http
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /schema/openapi.json
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /schema/openapi.json
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

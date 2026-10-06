@@ -1,0 +1,63 @@
+replicaCount: 1
+
+image:
+  repository: sird-gliner-test
+  tag: local
+  digest: ""
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+
+model:
+  enabled: true
+  directory: /opt/models/gliner
+  hubOffline: "1"
+  transformersOffline: "1"
+
+tessdata:
+  implementationSha256: 74b76a5b994adcc18be362bf64ed5118082b2401d5d9a35242e92fc4c62e2b4b
+  dataSha256: 60bdf3940a7c6055937249931ba82cb1c06b70b0cc4d243a3f1b25c966641b5a
+
+resources:
+  requests:
+    cpu: "1"
+    memory: 4Gi
+  limits:
+    cpu: "1"
+    memory: 4Gi
+
+tmp:
+  sizeLimit: 256Mi
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+
+nodeAffinity: {}
+
+probes:
+  startup:
+    failureThreshold: 36
+    periodSeconds: 5
+    timeoutSeconds: 5
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+  liveness:
+    initialDelaySeconds: 180
+    periodSeconds: 20
+    timeoutSeconds: 5
+
+networkPolicy:
+  denyEgress: true

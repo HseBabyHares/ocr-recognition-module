@@ -1,0 +1,16 @@
+{{- if .Values.networkPolicy.denyEgress }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "sird-gliner-test.fullname" . }}-deny-egress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sird-gliner-test.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "sird-gliner-test.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Egress
+  egress: []
+{{- end }}

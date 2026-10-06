@@ -1,0 +1,13 @@
+image:
+  repository: 10.96.113.136:5000/sird-gliner-test
+  tag: ""
+  digest: sha256:fc73ca7df671ce3783a3d50398993cde6f6eba7bd8b9c892fda406285f56ff18
+
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: NotIn
+            values:
+              - kserve-wrk-gpu-1

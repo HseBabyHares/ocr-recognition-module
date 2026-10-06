@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sird-ocr-test
+  namespace: sird-ocr-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sird-ocr-test
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sird-ocr-test
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sird-ocr-test
+          image: sird-ocr-test:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SIRD_TESSERACT_SHA256
+              value: "74b76a5b994adcc18be362bf64ed5118082b2401d5d9a35242e92fc4c62e2b4b"
+            - name: SIRD_TESSDATA_SHA256
+              value: "60bdf3940a7c6055937249931ba82cb1c06b70b0cc4d243a3f1b25c966641b5a"
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /schema/openapi.json
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /schema/openapi.json
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi

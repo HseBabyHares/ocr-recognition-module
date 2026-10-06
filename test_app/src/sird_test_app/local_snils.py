@@ -18,6 +18,7 @@ from sird_test_app.jobs import InMemorySnilsJobService
 READ_CHUNK_BYTES = _checksums.READ_CHUNK_BYTES
 _REQUIRED_LANGUAGES = _tesseract.REQUIRED_LANGUAGES
 _TESSDATA_DIRECTORIES = _tesseract._TESSDATA_DIRECTORIES
+_REQUIRED_LANGUAGE_SET = frozenset(_REQUIRED_LANGUAGES)
 _sha256_file = _checksums.sha256_file
 _verify_allowlisted_checksum = _checksums.verify_allowlisted_checksum
 _tessdata_checksum = _checksums.tessdata_checksum
@@ -84,7 +85,7 @@ def create_local_snils_app() -> Litestar:
     executable = shutil.which("tesseract")
     if executable is None:
         raise RuntimeError("Tesseract executable is required")
-    if not _available_languages(executable) >= _REQUIRED_LANGUAGES:
+    if not _available_languages(executable) >= _REQUIRED_LANGUAGE_SET:
         raise RuntimeError("Tesseract rus and eng languages are required")
     tessdata = _tessdata_directory()
     service = _build_service(executable, tessdata)

@@ -46,4 +46,4 @@ USER 10001:10001
 WORKDIR /app
 EXPOSE 8000
 
-CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "8000", "sird_test_app.local_snils:app"]
+CMD ["granian", "--interface", "asgi", "--factory", "--host", "0.0.0.0", "--port", "8000", "sird_test_app.local_snils:create_local_snils_app"]

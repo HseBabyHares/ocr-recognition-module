@@ -42,19 +42,22 @@ The current integration handoff records local mTLS as the development profile an
 
 ## Quick start
 
+The supported local toolchain is:
+
 - Python 3.14 or newer;
 - [`uv`](https://docs.astral.sh/uv/);
+- Node.js for repository delivery checks;
 - a system that can install the OpenCV wheel selected by `uv`.
 
-The root package declares `opencv-python-headless` as its runtime dependency. The root `dev` group also includes the gRPC runtime and generator used by the checked-in contract tests.
-
-### Install
-
-Run these commands from the repository root:
+Start from a fresh checkout:
 
 ```bash
+# Clone the repository using the URL provided by your project owner, then:
+cd sird-recognition
 uv sync --dev
 ```
+
+The root package declares `opencv-python-headless` as its runtime dependency. The root `dev` group also includes the gRPC runtime and generator used by the checked-in contract tests.
 
 ### Verify the root package
 
@@ -110,7 +113,11 @@ Each package has its own `pyproject.toml` and lockfile where it owns an independ
 uv run --project . --group dev pytest tests
 uv run --project . --group dev ruff check src tests
 uv run --project . --group dev ruff format --check src tests
+uv run --project . --group dev ty check src tests
+uv build --wheel --out-dir dist
 ```
+
+`ty check` is the repository type-check command. It currently reports baseline diagnostics in generated Protobuf stubs and a small number of adapter/test typing paths; treat a non-zero result as a real issue, not as a passed check. `uv build` writes the wheel to `dist/`.
 
 The pre-commit hook runs changed-file Python checks. The pre-push hook runs the repository harness, the root suite, and the integration suite.
 
@@ -133,14 +140,27 @@ integration/start.sh
 
 ### Experiment and verification packages
 
+Run the experiment from its own project directory so its `tests` import helpers resolve through the configured test path:
+
 ```bash
 uv run --project experiment --group dev pytest experiment/tests
+```
+
+Run the focused verification oracles with the verification environment:
+
+```bash
 (cd verification && uv run --project . pytest -q tests/test_acceptance_runner.py tests/test_architecture_oracle.py tests/test_corpus.py tests/test_metrics.py tests/test_recognition_oracles.py)
 ```
 
-The verification package uses the root source tree and integration source tree through its configured `pythonpath`. Its full test surface also includes workflow oracles and requires the integration package's optional runtime dependencies.
+The verification package's development environment includes SQLAlchemy, `psycopg[binary]`, and `confluent-kafka`, which its full workflow oracles import. The integration package's `test` extra supplies `pytest` for `integration/tests`; it does not provide the verification runtime dependencies.
 
-### Repository delivery checks
+### Build and delivery checks
+
+Build the root wheel with:
+
+```bash
+uv build --wheel --out-dir dist
+```
 
 Run the repository harness from the root:
 
@@ -148,19 +168,54 @@ Run the repository harness from the root:
 node tools/harness/checks/run-all.mjs
 ```
 
-The harness runs syntax, security, quality, container, architecture, OpenSpec, and garbage-collection checks. In the current repository state, quality, container, and architecture policies are explicitly `template-unconfigured`, so their advisory results are not a strict quality ratchet. Garbage-collection findings are reported separately.
+The harness runs syntax, security, quality, container, architecture, OpenSpec, and garbage-collection checks. Quality, container, and architecture policies are currently explicitly `template-unconfigured`, so their advisory results are not a strict quality ratchet. Garbage-collection findings are written to the generated artifacts directory and do not fail the harness by themselves.
+
+If the repository contains OpenSpec changes, install the pinned CLI before running the harness:
+
+```bash
+npm install --no-save --no-package-lock --ignore-scripts @fission-ai/openspec@1.13.1
+```
+
+The harness fails closed when this CLI is unavailable; do not replace that failure with a skipped validation.
+
+### CI mapping
+
+| Local check | CI owner |
+| --- | --- |
+| `node tools/harness/checks/run-all.mjs` | [`fadd-delivery-gates.yml`](.github/workflows/fadd-delivery-gates.yml) |
+| Root and integration suites from the pre-push hook | `.githooks/pre-push` |
+| Security database refresh | [`fadd-security-db-refresh.yml`](.github/workflows/fadd-security-db-refresh.yml) |
+
+The FADD delivery workflow mirrors the local harness and runs on Python 3.14. The pre-push hook additionally runs the root and integration test suites. Security database refreshes use the same Python version.
 
 ## Local HTTP adapter
 
-`test_app/` provides a test-only HTTP surface with these intended routes:
+`test_app/` provides a test-only HTTP surface with these routes:
 
-- `POST /tasks` accepts JPEG, PNG, WebP, or TIFF multipart uploads;
+- `POST /tasks` accepts JPEG, PNG, WebP, or TIFF multipart uploads in the `file` field;
 - `GET /tasks/{task_id}` returns in-memory task status;
 - `GET /tasks/{task_id}/result` returns the current or completed result.
 
-The local profile requires Tesseract with the `eng` and `rus` language data. GLiNER is disabled by default and becomes an opt-in local model path when `SIRD_GLINER_ENABLED=1` and `SIRD_GLINER_MODEL_DIR` are configured.
+The local profile requires Tesseract with the `eng` and `rus` language data. The checked-in [`test_app/Dockerfile`](test_app/Dockerfile) installs those system packages for the container path. GLiNER is disabled by default and becomes an opt-in local model path when `SIRD_GLINER_ENABLED=1` and `SIRD_GLINER_MODEL_DIR` points to an existing model directory.
 
-The checked-in launcher is [`test_app/run-local.sh`](test_app/run-local.sh), but the current launcher target and module exports are not aligned: the launcher and [`test_app/Dockerfile`](test_app/Dockerfile) target `sird_test_app.local_snils:app`, while [`local_snils.py`](test_app/src/sird_test_app/local_snils.py) currently exposes `create_local_snils_app()` rather than `app`. Treat this profile as blocked until that entrypoint contract is reconciled.
+Run the host launcher after installing the same Tesseract prerequisites:
+
+```bash
+SIRD_HOST=127.0.0.1 SIRD_PORT=8000 ./test_app/run-local.sh
+```
+
+Submit an image and poll the task:
+
+```bash
+response=$(curl -fsS -X POST \
+  -F 'file=@path/to/image.png;type=image/png' \
+  http://127.0.0.1:8000/tasks)
+task_id=$(printf '%s' "$response" | uv run python -c 'import json, sys; print(json.load(sys.stdin)["task_id"])')
+curl -fsS "http://127.0.0.1:8000/tasks/$task_id"
+curl -fsS "http://127.0.0.1:8000/tasks/$task_id/result"
+```
+
+The submission response is `202 Accepted` and contains `task_id`, `status_url`, and `result_url`. The job runs in memory and is lost when the process exits. The local adapter is not a production deployment.
 
 ## Protobuf and gRPC generation
 

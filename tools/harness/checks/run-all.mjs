@@ -114,37 +114,33 @@ const repositoryCommands = [
 const commands = packageMode ? packageCommands : repositoryCommands;
 const commandResults = [];
 let failed = false;
-let combinedOutput = "";
+const deterministicLogPath = path.join(logDirectory, "deterministic-run.log");
+const deterministicLogFd = fs.openSync(deterministicLogPath, "w");
 const runEnvironment = {
   ...process.env,
   PYTHONDONTWRITEBYTECODE: "1",
 };
 for (const [command, args] of commands) {
+  const commandLine = [command, ...args].join(" ");
   const startedAt = Date.now();
+  fs.writeSync(deterministicLogFd, `\n$ ${commandLine}\n`);
   const execution = spawnSync(
     "python3",
     [isolatedRunner, "300", "--", command, ...args],
     {
       cwd: repositoryRoot,
-      encoding: "utf8",
       env: runEnvironment,
       timeout: 310000,
-      maxBuffer: 32 * 1024 * 1024,
+      stdio: ["ignore", deterministicLogFd, deterministicLogFd],
     },
   );
   const commandResult = {
-    command: [command, ...args].join(" "),
+    command: commandLine,
     status: execution.status ?? 1,
     durationMs: Date.now() - startedAt,
   };
 
   commandResults.push(commandResult);
-
-  const outputSection =
-    `\n$ ${commandResult.command}\n` +
-    `${execution.stdout || ""}${execution.stderr || ""}`;
-  combinedOutput += outputSection;
-  process.stdout.write(outputSection);
 
   if (commandResult.status !== 0) {
     failed = true;
@@ -159,10 +155,7 @@ const report = {
   commands: commandResults,
 };
 
-combinedOutput += `\n${JSON.stringify(report, null, 2)}\n`;
-fs.writeFileSync(
-  path.join(logDirectory, "deterministic-run.log"),
-  combinedOutput,
-);
+fs.writeSync(deterministicLogFd, `\n${JSON.stringify(report, null, 2)}\n`);
+fs.closeSync(deterministicLogFd);
 console.log(JSON.stringify(report, null, 2));
 process.exit(failed ? 1 : 0);

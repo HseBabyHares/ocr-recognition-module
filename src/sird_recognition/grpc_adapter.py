@@ -98,6 +98,9 @@ class OcrServiceServicer(_recognize_pb2_grpc.OcrServiceServicer):
             )
         except ValueError as error:
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(error))
+            raise AssertionError(
+                "context.abort returned unexpectedly"
+            ) from error
         _grpc_adapter_limits.ensure_active(context)
         _grpc_adapter_limits.ensure_deadline(context)
         domain_request, stage_context = _grpc_adapter_limits.clamp_timeout(
@@ -123,5 +126,8 @@ class OcrServiceServicer(_recognize_pb2_grpc.OcrServiceServicer):
             return self._runtime.recognize(request, context_data)
         except grpc.RpcError:
             raise
-        except Exception:
+        except Exception as error:
             context.abort(grpc.StatusCode.INTERNAL, "OCR runtime failed")
+            raise AssertionError(
+                "context.abort returned unexpectedly"
+            ) from error

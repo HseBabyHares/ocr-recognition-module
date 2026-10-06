@@ -52,4 +52,4 @@ EXPOSE 8000
 
 # The application currently exposes the test adapter only. Startup verification
 # prevents readiness when an embedded artifact is missing or altered.
-CMD ["sh", "-ec", "sha256sum -c /opt/models/checksums.sha256 && exec granian --interface asgi --host 0.0.0.0 --port 8000 sird_test_app.local_snils:app"]
+CMD ["sh", "-ec", "sha256sum -c /opt/models/checksums.sha256 && exec granian --interface asgi --factory --host 0.0.0.0 --port 8000 sird_test_app.local_snils:create_local_snils_app"]

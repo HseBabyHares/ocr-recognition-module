@@ -560,6 +560,8 @@ requires-dist = [{ name = "opencv-python-headless", specifier = ">=4.10" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "granian", specifier = ">=2.8.3" },
+    { name = "grpcio", specifier = ">=1.84.0" },
+    { name = "grpcio-tools", specifier = ">=1.84.0" },
     { name = "litestar", specifier = ">=2.24.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-cov", specifier = ">=7.1.0" },

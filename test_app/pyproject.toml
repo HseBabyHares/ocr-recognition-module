@@ -24,7 +24,7 @@ packages = ["src/sird_test_app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "../src"]
+pythonpath = ["src", "tests", "../src"]
 
 [tool.ruff]
 target-version = "py313"

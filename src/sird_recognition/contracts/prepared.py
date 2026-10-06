@@ -16,7 +16,7 @@ class StageContext:
     request_id: str
     attempt_id: str
     artifact_capability: str
-    limits: Mapping[str, int]
+    limits: Mapping[str, int | float]
     policy_ref: str
 
 

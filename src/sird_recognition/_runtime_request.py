@@ -36,7 +36,7 @@ class RecognizeRequest:
     task_id: str
     request_id: str
     artifact_capability: str
-    limits: Mapping[str, int]
+    limits: Mapping[str, int | float]
     policy_ref: str
 
     @classmethod

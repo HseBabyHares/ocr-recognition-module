@@ -1,0 +1,23 @@
+{
+  "vhosts": [{"name": "/sird"}],
+  "exchanges": [
+    {"name": "sird.workflow", "vhost": "/sird", "type": "direct", "durable": true, "auto_delete": false, "internal": false},
+    {"name": "sird.workflow.dlx", "vhost": "/sird", "type": "direct", "durable": true, "auto_delete": false, "internal": false}
+  ],
+  "queues": [
+    {"name": "sird.task.v1", "vhost": "/sird", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum", "x-dead-letter-exchange": "sird.workflow.dlx", "x-dead-letter-routing-key": "sird.task.terminal.v1"}},
+    {"name": "sird.result.v1", "vhost": "/sird", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum"}},
+    {"name": "sird.task.retry.v1", "vhost": "/sird", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum", "x-message-ttl": 1000, "x-dead-letter-exchange": "sird.workflow", "x-dead-letter-routing-key": "sird.task.v1"}},
+    {"name": "sird.task.terminal.v1", "vhost": "/sird", "durable": true, "auto_delete": false, "arguments": {"x-queue-type": "quorum"}}
+  ],
+  "bindings": [
+    {"source": "sird.workflow", "vhost": "/sird", "destination": "sird.task.v1", "destination_type": "queue", "routing_key": "sird.task.v1", "arguments": {}},
+    {"source": "sird.workflow", "vhost": "/sird", "destination": "sird.result.v1", "destination_type": "queue", "routing_key": "sird.result.v1", "arguments": {}},
+    {"source": "sird.workflow", "vhost": "/sird", "destination": "sird.task.retry.v1", "destination_type": "queue", "routing_key": "sird.task.retry.v1", "arguments": {}},
+    {"source": "sird.workflow", "vhost": "/sird", "destination": "sird.task.terminal.v1", "destination_type": "queue", "routing_key": "sird.task.terminal.v1", "arguments": {}},
+    {"source": "sird.workflow.dlx", "vhost": "/sird", "destination": "sird.task.terminal.v1", "destination_type": "queue", "routing_key": "sird.task.terminal.v1", "arguments": {}}
+  ],
+  "policies": [
+    {"name": "sird-task-at-least-once-dlx", "vhost": "/sird", "pattern": "^sird\\.task\\.v1$", "apply-to": "quorum_queues", "priority": 10, "definition": {"dead-letter-exchange": "sird.workflow.dlx", "dead-letter-routing-key": "sird.task.terminal.v1", "dead-letter-strategy": "at-least-once", "overflow": "reject-publish"}}
+  ]
+}

@@ -1,0 +1,67 @@
+name: sird-recognition-integration
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3-management
+    hostname: rabbitmq
+    user: "0:0"
+    environment:
+      RABBITMQ_DEFAULT_USER: sird
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}"
+      RABBITMQ_DEFAULT_VHOST: /sird
+      RABBITMQ_CONFIG_FILE: /etc/rabbitmq/rabbitmq
+    ports:
+      - "127.0.0.1:5671:5671"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./integration/certs/rabbitmq:/etc/rabbitmq/tls:ro
+      - ./integration/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./integration/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: sird
+      POSTGRES_USER: sird
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sird-dev-password}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sird -d sird"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rustfs:
+    image: rustfs/rustfs:1.0.0
+    environment:
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-sird-dev-access}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-sird-dev-secret-change-me}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOGGER_LEVEL: error
+    command: ["/data"]
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - rustfs-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:9000/health >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  rustfs-data:

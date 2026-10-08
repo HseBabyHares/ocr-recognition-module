@@ -14,14 +14,14 @@
         "type": "change",
         "valid": true,
         "issues": [],
-        "durationMs": 18
+        "durationMs": 26
       },
       {
         "id": "specify-sird-ocr-integration",
         "type": "change",
         "valid": true,
         "issues": [],
-        "durationMs": 31
+        "durationMs": 38
       }
     ],
     "summary": {

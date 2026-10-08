@@ -79,12 +79,12 @@ class _Topology:
     ) -> None:
         await asyncio.gather(
             *(
-                exchange.bind(queue, routing_key=route)
+                queue.bind(exchange, routing_key=route)
                 for route, queue in queues.items()
             )
         )
-        await dead_letter_exchange.bind(
-            queues[TERMINAL_ROUTE], routing_key=TERMINAL_ROUTE
+        await queues[TERMINAL_ROUTE].bind(
+            dead_letter_exchange, routing_key=TERMINAL_ROUTE
         )
 
 

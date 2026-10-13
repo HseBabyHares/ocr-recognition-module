@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import cast
+from unittest.mock import Mock
 
 import cv2
 import numpy as np
@@ -9,6 +10,7 @@ import numpy as np
 from sird_recognition.candidate_extraction import (
     CandidateField,
     CandidateSpan,
+    GLiNERCandidateExtractor,
 )
 from sird_recognition.contracts.text_observation import (
     TextObservation,
@@ -518,6 +520,25 @@ class TestImageCrops(_TestHelpers):
 
         assert green_quad is not None
         assert warped.shape[1] != decoded.shape[1]
+
+    def test_shared_extractor_budget_is_per_request(self) -> None:
+        model = Mock()
+        model.predict_entities.return_value = []
+        service = SnilsRecognitionService(
+            FakeReader(_FORMATTED_SNILS),
+            candidate_extractor=GLiNERCandidateExtractor(model=model),
+        )
+
+        request_ids = ("request-1", "request-2")
+        for request_id in request_ids:
+            service.recognize_image(
+                self.image_bytes(),
+                timeout_seconds=_TIMEOUT_SECONDS,
+                request_id=request_id,
+            )
+
+        # Default budget is one model call per request, not per service.
+        assert model.predict_entities.call_count == len(request_ids)
 
 
 class TestDateExtraction(_TestHelpers):

@@ -28,6 +28,7 @@ class SnilsJobReader(Protocol):
         *,
         timeout_seconds: float,
         language: str = "rus+eng",
+        request_id: str | None = None,
     ) -> SnilsRecognitionResult:
         """Recognize one image synchronously."""
 
@@ -82,7 +83,7 @@ class _MutableJob:
 
 
 class InMemorySnilsJobService:
-    """Run local recognition jobs without Kafka or PostgreSQL."""
+    """Run local recognition jobs without a message broker or PostgreSQL."""
 
     def __init__(self, reader: SnilsJobReader) -> None:
         self._reader = reader
@@ -121,7 +122,8 @@ class InMemorySnilsJobService:
             status=job.status,
             created_at=job.created_at,
             updated_at=job.updated_at,
-            result=job.result,
+            # _inject_dataclass_fields adds `result` at runtime.
+            result=job.result,  # type: ignore
             error=job.error,
         )
 
@@ -134,12 +136,13 @@ class InMemorySnilsJobService:
                 image_bytes,
                 timeout_seconds=OCR_TIMEOUT_SECONDS,
                 language="rus+eng",
+                request_id=job.request_id,
             )
         except Exception as recognition_error:
             job.error = type(recognition_error).__name__
             job.status = JobStatus.FAILED
         else:
-            job.result = recognition_result
+            job.result = recognition_result  # type: ignore
             job.status = JobStatus.COMPLETED
         finally:
             job.updated_at = datetime.now(UTC)

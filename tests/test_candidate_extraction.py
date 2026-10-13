@@ -5,6 +5,7 @@ import json
 import tracemalloc
 from contextlib import ExitStack
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -532,3 +533,32 @@ class TestCandidateExtractionProfiles:
                 len(checksum),
                 all(character in "0123456789abcdef" for character in checksum),
             ) == (True, CHECKSUM_LENGTH, True)
+
+    def test_request_view_resets_call_budget(self) -> None:
+        events: list[CandidateStageTelemetry] = []
+        shared = GLiNERCandidateExtractor(
+            model=FakeModel([]), telemetry=events.append
+        )
+        shared.extract(_observation())
+        first = shared.for_request(request_id="view-1")
+        first.extract(_observation())
+        second = shared.for_request(request_id="view-2")
+        with pytest.raises(CandidateStageLimitError, match="model-call"):
+            first.extract(_observation())
+        second.extract(_observation())
+
+        request_ids = dict.fromkeys(event.request_id for event in events)
+        assert list(request_ids) == ["unknown", "view-1", "view-2"]
+
+    def test_request_views_share_lazy_model(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        load = Mock(return_value=FakeModel([]))
+        monkeypatch.setattr(
+            "sird_recognition._candidate_extractor._load_model", load
+        )
+        shared = GLiNERCandidateExtractor(model_id="lazy-model")
+        for _ in range(2):
+            shared.for_request().extract(_observation())
+
+        load.assert_called_once()

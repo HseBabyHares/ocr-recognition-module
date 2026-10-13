@@ -81,7 +81,9 @@ class SnilsServiceSpy:
         *,
         timeout_seconds: float,
         language: str,
+        request_id: str | None = None,
     ) -> Any:
+        assert request_id
         assert timeout_seconds == TEST_CONSTANTS["ocr_timeout_seconds"]
         assert language == TEST_CONSTANTS["ocr_language"]
         self.image_calls.append(image_bytes)

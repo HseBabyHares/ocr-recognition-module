@@ -1,12 +1,13 @@
 """Optional GLiNER-backed candidate extractor implementation."""
 
+import copy
 import importlib
 import time
 from collections.abc import Mapping
 from contextlib import suppress
-from typing import TypedDict, Unpack, cast
+from typing import Self, TypedDict, Unpack, cast
 
-from sird_recognition import candidate_contracts
+from sird_recognition import candidate_config, candidate_contracts
 from sird_recognition._candidate_inference import (
     InferenceContext,
     run_inference,
@@ -18,7 +19,6 @@ from sird_recognition._candidate_model import (
 )
 from sird_recognition._candidate_resources import ResourceContext
 from sird_recognition._candidate_translation import TranslationSource
-from sird_recognition.candidate_config import validate_settings
 from sird_recognition.contracts.text_observation import TextObservation
 
 CandidateStageLimitError = candidate_contracts.CandidateStageLimitError
@@ -101,7 +101,7 @@ class GLiNERCandidateExtractor:
         **settings: Unpack[_ExtractorSettings],
     ) -> None:
         options = _extract_settings(settings)
-        validate_settings(options)
+        candidate_config.validate_settings(options)
         self._model = model
         self._model_id = _configured_identifier(options["model_id"], model)
         self._model_revision = _configured_identifier(
@@ -135,6 +135,31 @@ class GLiNERCandidateExtractor:
                 self._model_revision or _INJECTED_SOURCE,
             ),
         )
+
+    def for_request(
+        self,
+        *,
+        request_id: str | None = None,
+        attempt_id: str | None = None,
+    ) -> Self:
+        """Return a view with a fresh model-call budget for one request."""
+        with suppress(CandidateStageUnavailableError):
+            # Load once here, so request views share the model, not reload it.
+            self._get_model()
+        scoped = copy.copy(self)
+        scoped._model_calls = 0
+        if request_id is not None:
+            scoped._request_id = request_id
+        if attempt_id is not None:
+            scoped._attempt_id = attempt_id
+        scoped._resources = ResourceContext(
+            self._timeout_seconds,
+            self._memory_limit_bytes,
+            self._max_candidates,
+            scoped._emit,
+            self._resources.source,
+        )
+        return scoped
 
     def extract(
         self, observation: TextObservation

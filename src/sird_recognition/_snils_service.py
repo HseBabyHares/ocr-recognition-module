@@ -29,6 +29,21 @@ from sird_recognition._snils_types import (
 from sird_recognition.candidate_extraction import CandidateExtractor
 
 
+def _request_extractor(
+    extractor: CandidateExtractor | None,
+    request_id: str | None,
+    attempt_id: str | None,
+) -> CandidateExtractor | None:
+    # A shared extractor must spend its model-call budget per request.
+    for_request = getattr(extractor, "for_request", None)
+    if not callable(for_request):
+        return extractor
+    return cast(
+        CandidateExtractor,
+        for_request(request_id=request_id, attempt_id=attempt_id),
+    )
+
+
 def _validate_cpu_threads(cpu_threads: object) -> int:
     if not isinstance(cpu_threads, int) or isinstance(cpu_threads, bool):
         raise ValueError("cpu_threads must be a positive integer")
@@ -102,6 +117,8 @@ class SnilsRecognitionService:
         *,
         timeout_seconds: float,
         language: str = "rus+eng",
+        request_id: str | None = None,
+        attempt_id: str | None = None,
     ) -> SnilsRecognitionResult:
         """Run local OCR variants and return verified data or refusal."""
         if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
@@ -115,7 +132,9 @@ class SnilsRecognitionService:
         return recognize_variants(
             RecognitionInputs(
                 self._reader,
-                self._candidate_extractor,
+                _request_extractor(
+                    self._candidate_extractor, request_id, attempt_id
+                ),
                 variants,
                 timeout_seconds,
                 language,

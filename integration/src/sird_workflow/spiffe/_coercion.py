@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from urllib.parse import SplitResult, urlsplit
 
-from sird_workflow._spiffe_errors import (
+from sird_workflow.spiffe._errors import (
     InvalidCredentialError,
     MalformedSpiffeIdError,
     UnknownWorkloadRoleError,
@@ -15,7 +15,7 @@ _MALFORMED_SPIFFE_ID = "SPIFFE identity is malformed"
 
 
 def coerce_spiffe_id(candidate: object):
-    from sird_workflow.spiffe import SpiffeId
+    from sird_workflow.spiffe._identity import SpiffeId
 
     if isinstance(candidate, SpiffeId):
         return candidate
@@ -25,7 +25,7 @@ def coerce_spiffe_id(candidate: object):
 
 
 def coerce_role(candidate: object):
-    from sird_workflow.spiffe import WorkloadRole
+    from sird_workflow.spiffe._role import WorkloadRole
 
     if isinstance(candidate, WorkloadRole):
         return candidate

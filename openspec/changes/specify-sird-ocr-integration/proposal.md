@@ -19,7 +19,7 @@ SIRD Recognition has a broad prototype specification but no single executable Op
 - Define MVP classification for the old SNILS card, ADI-REG 2019, and ADI-REG 2023 with deterministic strict uncertainty behavior.
 - Define explicit technical/subject/result-completeness mappings, retry taxonomy, idempotency, finite deadline, local TLS/mTLS boundary, result publication, redelivery recovery, and transactional outbox.
 - Make Docker Compose the first integrated release gate. Defer Helm/Kubernetes deployment, multi-node broker availability, production workload identity and broker authorization, protected-corpus thresholds, and production p99 evidence.
-- Keep the first version on a private local deployment boundary with a trusted SIRD backend, task-bound artifact capabilities, bounded decoding, safe logs, and cleanup. Defer production SPIFFE/SPIRE issuance, service-mesh integration, RabbitMQ workload identity and broker-authorization operations until the SIRD deployment exists.
+- Keep the first version on a private local deployment boundary with a trusted SIRD backend, task-bound artifact capabilities, bounded decoding, safe logs, and cleanup. Defer production mTLS certificate issuance and rotation, service-mesh integration, RabbitMQ workload identity and broker-authorization operations until the SIRD deployment exists.
 - Define field-level partial results and machine-readable diagnostics for glare, occlusion, low resolution, conflicts, and other unreadable fields.
 - Keep prototype documents as migration evidence until traceability and validation complete; archive them only in a separately authorized cleanup step.
 

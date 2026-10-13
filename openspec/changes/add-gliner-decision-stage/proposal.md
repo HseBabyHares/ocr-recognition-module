@@ -33,7 +33,7 @@ None. This change extends the existing OCR recognition and operations contracts.
 
 - GLiNER will not read pixels or replace Tesseract/OpenCV.
 - GLiNER output will not be accepted as a final value without label/region binding and deterministic validation.
-- This change does not add production SIRD/gRPC/SPIRE/RabbitMQ integration. The Docker Compose RabbitMQ MVP is the first integration gate; Helm/Kubernetes production deployment remains deferred.
+- This change does not add production SIRD/gRPC/mTLS/RabbitMQ integration. The Docker Compose RabbitMQ MVP is the first integration gate; Helm/Kubernetes production deployment remains deferred.
 - This change does not claim successful real-image validation until a real image is available as a repository-owned or otherwise authorized fixture.
 - This change does not use the user's real SNILS image in source code, artifacts, or chat.
 

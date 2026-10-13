@@ -24,8 +24,6 @@ from sird_workflow.consumer import (
 )
 
 
-
-
 def test_returned_delivery_is_explicit() -> None:
     with pytest.raises(UnroutableMessageError):
         asyncio.run(

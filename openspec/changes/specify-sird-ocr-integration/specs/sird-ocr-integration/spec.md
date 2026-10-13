@@ -235,10 +235,10 @@ The target RabbitMQ Compose workflow SHALL use TLS and fail-closed route authori
 
 ### Requirement: Production identity and broker authorization are a separate track
 
-Production deployment SHALL additionally use mutually authenticated TLS with SPIFFE X.509-SVIDs and trust bundles supplied by SPIRE, explicit SPIFFE ID-to-role authorization, credential renewal, and least-privilege RabbitMQ exchange/queue permissions. These controls are deployment inputs and acceptance gates for the production track; they are not required to run the first Docker Compose MVP.
+Production deployment SHALL additionally use mutually authenticated TLS with X.509 client certificates issued by a deployment CA, explicit client-certificate identity-to-role authorization, certificate rotation, and least-privilege RabbitMQ exchange/queue permissions. These controls are deployment inputs and acceptance gates for the production track; they are not required to run the first Docker Compose MVP.
 
 #### Scenario: Production caller lacks its workload identity
-- **WHEN** a production caller lacks the authorized SPIFFE identity, presents an expired/untrusted credential, or lacks the required RabbitMQ authorization
+- **WHEN** a production caller lacks an authorized mTLS client certificate identity, presents an expired/untrusted credential, or lacks the required RabbitMQ authorization
 - **THEN** the call or broker operation is rejected before recognition or durable acknowledgement
 
 

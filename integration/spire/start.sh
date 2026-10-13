@@ -5,7 +5,7 @@ repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$repo_root"
 
 compose() {
-    docker compose -f compose.spire.integration.yml "$@"
+    docker compose -f integration/spire/compose.yml "$@"
 }
 
 integration/spire/init-local-ca.sh

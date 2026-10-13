@@ -10,11 +10,11 @@
     "Keep terminal outcomes and security-relevant actions attributable to a workload identity."
   ],
   "assets": [
-    {"id": "A1", "name": "Task and request metadata", "classification": "task-metadata", "locations": ["task-service", "kafka", "postgres"]},
-    {"id": "A2", "name": "Document artifacts and OCR-derived content", "classification": "document-derived", "locations": ["rustfs", "process-service", "ocr-runtime", "kafka"]},
-    {"id": "A3", "name": "Attempt, fencing, retry, outbox, and offset state", "classification": "workflow-state", "locations": ["postgres", "kafka", "process-service"]},
-    {"id": "A4", "name": "Workload credentials, SVIDs, trust bundles, and role mappings", "classification": "identity", "locations": ["spiffe", "task-service", "process-service", "kafka"]},
-    {"id": "A5", "name": "Terminal result and dead-letter records", "classification": "task-metadata", "locations": ["postgres", "kafka", "sird-backend"]}
+    {"id": "A1", "name": "Task and request metadata", "classification": "task-metadata", "locations": ["task-service", "rabbitmq", "postgres"]},
+    {"id": "A2", "name": "Document artifacts and OCR-derived content", "classification": "document-derived", "locations": ["rustfs", "process-service", "ocr-runtime", "rabbitmq"]},
+    {"id": "A3", "name": "Attempt, fencing, retry, outbox, and delivery acknowledgement state", "classification": "workflow-state", "locations": ["postgres", "rabbitmq", "process-service"]},
+    {"id": "A4", "name": "mTLS client certificates, CA trust anchors, and role mappings", "classification": "identity", "locations": ["task-service", "process-service", "rabbitmq"]},
+    {"id": "A5", "name": "Terminal result and dead-letter records", "classification": "task-metadata", "locations": ["postgres", "rabbitmq", "sird-backend"]}
   ],
   "attackers": [
     {
@@ -52,17 +52,17 @@
     {
       "id": "ADV-05",
       "name": "Stolen or mis-issued workload identity",
-      "position": "identity boundary with a certificate or SVID-like credential",
-      "capabilities": ["Present a credential before expiry", "Attempt URI SAN, role, trust-bundle, or principal-mapping confusion"],
-      "cannotAssume": ["Correct role authorization", "Valid production trust-bundle issuance", "Kafka ACL permission without mapping"],
+      "position": "identity boundary with an mTLS client certificate",
+      "capabilities": ["Present a credential before expiry", "Attempt certificate subject, role, CA trust-anchor, or principal-mapping confusion"],
+      "cannotAssume": ["Correct role authorization", "Valid production certificate issuance", "RabbitMQ vhost permission without mapping"],
       "goals": ["Spoof a trusted service", "Elevate role", "Bypass ACL or expiry checks"]
     }
   ],
   "assumptionsAndExclusions": [
     "The local profile is loopback-only and does not prove production network isolation.",
     "SIRD owns end-user authorization; this integration authorizes workload and task boundaries only.",
-    "Host kernel compromise, PostgreSQL superuser compromise, Kafka cluster administrator compromise, and CA root compromise are outside this bounded application threat model and require deployment-level review.",
-    "SPIFFE/SPIRE issuance, trust-bundle distribution, renewal, and Kafka URI-SAN principal mapping remain production evidence gaps even though identity parsing and role primitives are implemented."
+    "Host kernel compromise, PostgreSQL superuser compromise, RabbitMQ broker administrator compromise, and CA root compromise are outside this bounded application threat model and require deployment-level review.",
+    "Production mTLS client certificate issuance and rotation, CA trust-anchor distribution, RabbitMQ broker authorization, and per-service identity mapping remain production evidence gaps. The local profile validates client certificate material only."
   ],
   "dfdSource": "security/threat-model/dfd.json",
   "renderedDfd": "architecture/rendered/sird-ocr-dfd.html",

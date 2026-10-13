@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import EnumType, StrEnum
 from typing import Any, cast
 
-from sird_workflow._spiffe_errors import UnknownWorkloadRoleError
+from sird_workflow.spiffe._errors import UnknownWorkloadRoleError
 
 
 class _WorkloadRoleType(EnumType):

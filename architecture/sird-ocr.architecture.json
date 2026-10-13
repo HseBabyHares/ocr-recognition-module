@@ -35,14 +35,13 @@
         "id": "identity",
         "label": "Идентичность и границы",
         "focus": [
-          "spire",
           "workflow",
           "process",
           "rabbitmq",
           "rustfs",
           "sird"
         ],
-        "note": "Локальный mTLS является профилем разработки; production identity target — SPIFFE/SPIRE."
+        "note": "Идентичность нагрузок — клиентские сертификаты mTLS и авторизация в брокере RabbitMQ; локальный профиль использует сертификаты разработки."
       },
       {
         "id": "sequence",
@@ -168,21 +167,6 @@
       "pos": [
         1060,
         430
-      ],
-      "size": [
-        190,
-        72
-      ]
-    },
-    {
-      "id": "spire",
-      "type": "security",
-      "label": "SPIFFE / SPIRE",
-      "sublabel": "production workload identity target",
-      "tag": "URI SAN, not CN",
-      "pos": [
-        280,
-        80
       ],
       "size": [
         190,
@@ -330,27 +314,6 @@
       "labelDy": -24
     },
     {
-      "id": "spire-workflow",
-      "from": "spire",
-      "to": "workflow",
-      "label": "role policy",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "labelDx": -100,
-      "labelDy": 24
-    },
-    {
-      "id": "spire-process",
-      "from": "spire",
-      "to": "process",
-      "label": "SVID / trust bundle target",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "labelDx": 120
-    },
-    {
       "id": "experiment-verification",
       "from": "experiment",
       "to": "verification",
@@ -382,8 +345,8 @@
       "dot": "rose",
       "title": "Границы",
       "items": [
-        "Local mTLS is implemented profile evidence; SPIFFE/SPIRE remains production target evidence",
-        "URI SAN проверяется отдельно от CN",
+        "Local mTLS client certificates are implemented; production issuance and rotation remain open",
+        "RabbitMQ проверяет клиентский сертификат по CA",
         "Model execution, OS sandbox и acceptance corpus пока не verified"
       ]
     }

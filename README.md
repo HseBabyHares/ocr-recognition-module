@@ -35,10 +35,10 @@ This repository does not own:
 - production task storage or result retention;
 - authentication, user interfaces, or final business acceptance;
 - a production broker deployment;
-- SPIFFE/SPIRE issuance, trust-bundle validation, or renewal;
+- production certificate issuance and rotation for mTLS;
 - a production OCR model or an accepted labeled corpus.
 
-The current integration handoff records local mTLS as the development profile and SPIFFE/SPIRE as a production target. It also records that production gRPC deployment and SPIFFE/SPIRE issuance are not yet present. See [`handoff/sird-ocr-integration.md`](handoff/sird-ocr-integration.md).
+Workload identity uses mTLS client certificates and RabbitMQ broker authorization. The current integration handoff records that production gRPC deployment and production certificate issuance are not yet present. The owner dropped SPIFFE/SPIRE on 2026-10-13. The old local profile is isolated in `integration/spire/` (`integration/spire/compose.yml`) and is not supported. See [`handoff/sird-ocr-integration.md`](handoff/sird-ocr-integration.md).
 
 ## Quick start
 
@@ -239,7 +239,7 @@ The root runtime is transport-neutral and does not persist task state. Local int
 The current evidence records these open gaps:
 
 - production gRPC client and deployment;
-- SPIFFE/SPIRE issuance, trust bundles, Kafka ACL identity mapping, and renewal;
+- production certificate issuance and rotation for mTLS, RabbitMQ broker authorization, and per-service identity mapping;
 - OS-level decoder isolation;
 - accepted corpus, numeric quality thresholds, retention cleanup, and OCR/task latency evidence.
 

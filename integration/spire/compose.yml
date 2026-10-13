@@ -7,8 +7,8 @@ services:
       - -config
       - /etc/spire/server/server.conf
     volumes:
-      - ./integration/spire/server.conf:/etc/spire/server/server.conf:ro
-      - ./integration/spire/runtime:/run/spire/upstream:ro
+      - ./server.conf:/etc/spire/server/server.conf:ro
+      - ./runtime:/run/spire/upstream:ro
       - spire-server-data:/var/lib/spire/server
       - spire-server-run:/run/spire/server
     healthcheck:
@@ -29,8 +29,8 @@ services:
       spire-server:
         condition: service_healthy
     volumes:
-      - ./integration/spire/agent.conf:/etc/spire/agent/agent.conf:ro
-      - ./integration/spire/runtime:/run/spire/bootstrap:ro
+      - ./agent.conf:/etc/spire/agent/agent.conf:ro
+      - ./runtime:/run/spire/bootstrap:ro
       - spire-agent-data:/var/lib/spire/agent
       - spire-agent-run:/run/spire/agent
     command:

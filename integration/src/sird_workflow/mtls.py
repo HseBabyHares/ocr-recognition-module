@@ -1,7 +1,6 @@
 """Fail-closed local certificate material checks for RabbitMQ mTLS clients.
 
-This module validates local files only. It does not issue certificates or
-implement SPIFFE/SPIRE workload identity.
+This module validates local files only. It does not issue certificates.
 """
 
 from __future__ import annotations

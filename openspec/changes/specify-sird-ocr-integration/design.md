@@ -16,7 +16,7 @@ The target performance input is p99 OCR latency below 30 seconds for the product
 
 ## First-version boundary
 
-The first version is a local, private deployment for a trusted SIRD backend. It does not expose a public Task/Process API and does not require SPIFFE/SPIRE, Kubernetes identity issuance, service-mesh integration, RabbitMQ production workload identity, an OS-level decoder sandbox, a protected production corpus, or a numeric p99 release gate.
+The first version is a local, private deployment for a trusted SIRD backend. It does not expose a public Task/Process API and does not require production mTLS certificate issuance, Kubernetes identity issuance, service-mesh integration, RabbitMQ production workload identity, an OS-level decoder sandbox, a protected production corpus, or a numeric p99 release gate.
 
 The first version still requires the controls that prevent accidental data exposure and unbounded work:
 
@@ -150,6 +150,6 @@ The owner selected the current repository root for Python implementation. `uv in
 
 The owner confirmed that Task Service and Process Service belong in this repository as a separate integration package. The OCR module boundary is unchanged: `sird_recognition` owns stateless recognition and must not import the workflow package or require broker/PostgreSQL dependencies. The integration package owns task state, RabbitMQ delivery, PostgreSQL transactions, attempts, and result publication. Its dependencies and deployable artifact must be separate from the production OCR artifact. The Kafka baseline was removed by owner decision on 2026-10-13. Prototype statements excluding durable SIRD workflow from the OCR module apply to that module, not to the repository as a whole.
 
-Task/Process APIs serve only the authorized SIRD backend. In the first version this means a trusted caller on loopback or a private Docker network; the adapter MUST NOT treat a user-supplied `caller_identity` as transport authentication. SIRD owns end-user authorization; knowledge of a task identifier never grants access. SPIFFE/SPIRE workload identities, trust bundles, renewal, explicit production identity-to-role authorization, and RabbitMQ broker authorization are production deployment inputs deferred until the SIRD deployment and team identity architecture exist.
+Task/Process APIs serve only the authorized SIRD backend. In the first version this means a trusted caller on loopback or a private Docker network; the adapter MUST NOT treat a user-supplied `caller_identity` as transport authentication. SIRD owns end-user authorization; knowledge of a task identifier never grants access. Production mTLS client certificate issuance and rotation, CA trust anchors, explicit production identity-to-role authorization, and RabbitMQ broker authorization are production deployment inputs deferred until the SIRD deployment and team identity architecture exist.
 
 SIRD supplies result retention policy. When it supplies none, stored results and integration-owned result artifacts use a 12-hour default. Diagnostic retention remains opt-in; the fallback neither grants diagnostic access nor changes ownership or deletion authority for SIRD originals.

@@ -1,9 +1,4 @@
-"""Fail-closed SPIFFE identity and workload authorization primitives.
-
-This module only validates identity values and credential metadata that a
-caller has already obtained. It does not acquire SVIDs, validate trust
-bundles, or integrate with SPIRE.
-"""
+"""SPIFFE identity, credential and authorization policy values."""
 
 from __future__ import annotations
 
@@ -13,21 +8,9 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import cast
 
-from sird_workflow import (
-    _spiffe_errors as errors_module,
-)
-from sird_workflow import (
-    _spiffe_helpers as helpers_module,
-)
-from sird_workflow._spiffe_role import WorkloadRole
-
-SpiffePolicyError = errors_module.SpiffePolicyError
-MalformedSpiffeIdError = errors_module.MalformedSpiffeIdError
-EmptyAuthorizationPolicyError = errors_module.EmptyAuthorizationPolicyError
-UnknownWorkloadRoleError = errors_module.UnknownWorkloadRoleError
-InvalidCredentialError = errors_module.InvalidCredentialError
-ExpiredCredentialError = errors_module.ExpiredCredentialError
-UnauthorizedWorkloadError = errors_module.UnauthorizedWorkloadError
+from sird_workflow.spiffe import _coercion as coercion_module
+from sird_workflow.spiffe import _errors as errors_module
+from sird_workflow.spiffe._role import WorkloadRole
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -47,7 +30,7 @@ class SpiffeId:
         if options:
             raise TypeError("unexpected SPIFFE identity arguments")
         identifier_value = cast(str, identifier)
-        parsed = helpers_module.parse_spiffe_id(identifier_value)
+        parsed = coercion_module.parse_spiffe_id(identifier_value)
         object.__setattr__(self, "identifier", identifier_value)
         object.__setattr__(self, "trust_domain", parsed[0])
         object.__setattr__(self, "path", parsed[1])
@@ -105,8 +88,8 @@ class SpiffeAuthorizationPolicy:
 
         normalized: dict[str, WorkloadRole] = {}
         for identity, role in supplied[0].items():
-            parsed_identity = helpers_module.coerce_spiffe_id(identity)
-            normalized[parsed_identity.value] = helpers_module.coerce_role(
+            parsed_identity = coercion_module.coerce_spiffe_id(identity)
+            normalized[parsed_identity.value] = coercion_module.coerce_role(
                 role
             )
         if not normalized:
@@ -117,7 +100,7 @@ class SpiffeAuthorizationPolicy:
 
     def role_for(self, identity: SpiffeId | str) -> WorkloadRole:
         """Return the configured role for an exact identity."""
-        parsed_identity = helpers_module.coerce_spiffe_id(identity)
+        parsed_identity = coercion_module.coerce_spiffe_id(identity)
         try:
             return self.allowed_roles[parsed_identity.value]
         except KeyError as error:
@@ -152,15 +135,17 @@ class WorkloadCredential:
 
     def __post_init__(self) -> None:
         object.__setattr__(
-            self, "spiffe_id", helpers_module.coerce_spiffe_id(self.spiffe_id)
+            self, "spiffe_id", coercion_module.coerce_spiffe_id(self.spiffe_id)
         )
-        helpers_module.validate_timestamp(self.expires_at, "credential expiry")
+        coercion_module.validate_timestamp(
+            self.expires_at, "credential expiry"
+        )
         if self.issued_at is not None:
-            helpers_module.validate_timestamp(
+            coercion_module.validate_timestamp(
                 self.issued_at, "credential issue"
             )
         if self.renewed_at is not None:
-            helpers_module.validate_timestamp(
+            coercion_module.validate_timestamp(
                 self.renewed_at, "credential renewal"
             )
         if (
@@ -190,7 +175,7 @@ class _CredentialValidator:
         expected_id: SpiffeId | str | None,
     ) -> None:
         if expected_id is not None:
-            expected_identity = helpers_module.coerce_spiffe_id(expected_id)
+            expected_identity = coercion_module.coerce_spiffe_id(expected_id)
             if identity != expected_identity:
                 raise errors_module.InvalidCredentialError(
                     "credential identity does not match"
@@ -225,8 +210,8 @@ def validate_credential(
 ) -> bool:
     """Validate identity and expiry/renewal metadata, failing closed."""
     checked = _CredentialValidator.require_credential(credential)
-    current = helpers_module.coerce_now(now)
-    identity = helpers_module.coerce_spiffe_id(checked.spiffe_id)
+    current = coercion_module.coerce_now(now)
+    identity = coercion_module.coerce_spiffe_id(checked.spiffe_id)
     _CredentialValidator.require_identity(checked, identity, expected_id)
     _CredentialValidator.require_time_bounds(checked, current)
     return True
@@ -245,7 +230,7 @@ def authorize_workload(
             "authorization policy has an invalid type"
         )
     validate_credential(credential, now=now)
-    requested_role = helpers_module.coerce_role(role)
+    requested_role = coercion_module.coerce_role(role)
     configured_role = policy.role_for(credential.spiffe_id)
     if configured_role != requested_role:
         raise errors_module.UnauthorizedWorkloadError(

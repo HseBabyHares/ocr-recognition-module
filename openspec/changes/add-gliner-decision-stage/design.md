@@ -24,7 +24,7 @@ The candidate model is an untrusted inference component. The model, tokenizer, a
 
 - Replacing Tesseract or reading pixels with GLiNER.
 - Treating model scores as calibrated probabilities or final truth.
-- Adding production SIRD/gRPC/SPIRE/RabbitMQ integration.
+- Adding production SIRD/gRPC/mTLS/RabbitMQ integration.
 - Enabling a model in the production image before the model-contract and CPU gates pass.
 
 - Validating a private real document without an authorized fixture.

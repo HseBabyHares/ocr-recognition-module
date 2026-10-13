@@ -16,10 +16,9 @@
           "process",
           "ocr",
           "postgres",
-          "rustfs",
-          "spire"
+          "rustfs"
         ],
-        "note": "Flows between the external SIRD backend, integration runtime, data stores, and identity plane."
+        "note": "Flows between the external SIRD backend, integration runtime, and data stores."
       },
       {
         "id": "task-dataflow",
@@ -48,12 +47,11 @@
         "id": "identity-dataflow",
         "label": "Identity flow",
         "focus": [
-          "spire",
           "task",
           "process",
           "rabbitmq"
         ],
-        "note": "Identity metadata is a production target; the local profile uses mTLS credentials."
+        "note": "Workloads use mTLS client certificates to RabbitMQ; certificate issuance, rotation, and per-service identity mapping are open."
       }
     ]
   },
@@ -162,21 +160,6 @@
         190,
         76
       ]
-    },
-    {
-      "id": "spire",
-      "type": "security",
-      "label": "SPIFFE / SPIRE",
-      "sublabel": "identity target",
-      "tag": "identity zone",
-      "pos": [
-        260,
-        90
-      ],
-      "size": [
-        190,
-        76
-      ]
     }
   ],
   "boundaries": [
@@ -203,13 +186,6 @@
         "rabbitmq",
         "postgres",
         "rustfs"
-      ]
-    },
-    {
-      "kind": "security-group",
-      "label": "Identity trust zone",
-      "wraps": [
-        "spire"
       ]
     }
   ],
@@ -305,28 +281,6 @@
         ]
       ],
       "labelDy": -24
-    },
-    {
-      "id": "spire-task",
-      "from": "spire",
-      "to": "task",
-      "label": "SVID + trust bundle",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "labelDy": 20,
-      "labelDx": -100
-    },
-    {
-      "id": "spire-process",
-      "from": "spire",
-      "to": "process",
-      "label": "role identity",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "labelDy": -35,
-      "labelDx": 90
     }
   ],
   "cards": [
@@ -335,15 +289,15 @@
       "title": "Trust boundaries",
       "items": [
         "External SIRD caller enters Task Service",
-        "Application services cross into Kafka, PostgreSQL, and RustFS",
-        "Identity plane is a target boundary, not deployed SPIRE evidence"
+        "Application services cross into RabbitMQ, PostgreSQL, and RustFS",
+        "Workload identity uses local mTLS client certificates"
       ]
     },
     {
       "dot": "emerald",
       "title": "STRIDE anchors",
       "items": [
-        "Identity and authorization flows anchor spoofing and elevation threats",
+        "mTLS and broker authorization flows anchor spoofing and elevation threats",
         "Outboxes and fencing anchor tampering and repudiation threats",
         "Capability-bound artifacts and bounded OCR anchor disclosure and denial-of-service threats"
       ]
@@ -352,7 +306,7 @@
       "dot": "rose",
       "title": "Open evidence",
       "items": [
-        "Production transport, SPIRE issuance, Kafka ACL mapping, sandbox, and retention cleanup remain unverified"
+        "Production transport, mTLS issuance, RabbitMQ broker authorization, sandbox, and retention cleanup remain unverified"
       ]
     }
   ]

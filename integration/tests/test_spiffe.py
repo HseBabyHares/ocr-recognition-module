@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from importlib import import_module
 
 import pytest
 from sird_workflow import spiffe
@@ -93,3 +94,10 @@ def test_rejects_expired_and_future_renewal() -> None:
 def test_empty_policy_fails_closed() -> None:
     with pytest.raises(spiffe.EmptyAuthorizationPolicyError):
         spiffe.SpiffeAuthorizationPolicy(allowed_roles={})
+
+
+def test_root_api_does_not_export_spiffe() -> None:
+    root_api = import_module("sird_workflow")
+    for name in ("SpiffeId", "WorkloadRole", "authorize_workload"):
+        with pytest.raises(AttributeError):
+            getattr(root_api, name)

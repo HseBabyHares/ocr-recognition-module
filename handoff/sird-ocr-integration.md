@@ -4,7 +4,7 @@
 
 - RabbitMQ 4.3 (`rabbitmq:4.3-management`, single node) is the workflow transport. Durable quorum queues carry task, result, retry, and terminal routes through `aio-pika`. The owner removed Kafka from the repository on 2026-10-13.
 - RustFS is the local object-store profile.
-- Local development uses mTLS; production identity target is SPIFFE/SPIRE.
+- Workload identity uses mTLS client certificates and RabbitMQ broker authorization. The owner dropped SPIFFE/SPIRE on 2026-10-13. The old local profile is isolated in `integration/spire/` (`integration/spire/compose.yml`, `integration/spire/start.sh`) and is not supported.
 - Task and Process APIs are trusted-SIRD-backend-only.
 - SIRD owns result retention; integration uses a 12-hour fallback.
 - OCR runtime remains broker- and database-independent; workflow code lives in `integration/`.
@@ -32,13 +32,13 @@ The local profile publishes RabbitMQ (AMQPS `5671`, management `15672`), Postgre
 - Test adapter tests: 3 passed.
 - Ruff lint and format pass across all package paths.
 - Strict OpenSpec validation passes.
-- Strict architecture validation passes: 6 components, 6 views, 8 DFD elements, 10 flows, and 62 explicit STRIDE threats.
+- Strict architecture validation passes: 6 components, 6 views, 8 DFD elements, 10 flows, and 62 explicit STRIDE threats. This count predates the SPIFFE/SPIRE removal of 2026-10-13. The Archify DFD now has 7 elements and 8 flows; the STRIDE validation was not executed again.
 - The threat model is DFD-backed: `security/threat-model/dfd.json` is linked to the English Archify source `architecture/sird-ocr-dfd.architecture.json` and delivered artifact `architecture/rendered/sird-ocr-dfd.html`; the adversary model is `security/threat-model/adversary-model.json`.
 - STRIDE coverage is complete for 18 DFD subjects and 108 subject/category cells: 89 concrete threat dispositions and 19 subject-specific not-applicable dispositions; no catch-all or unreviewed threat reference remains.
 - Each threat record now declares a primary DFD subject and, where a control spans multiple boundaries, explicit `relatedSubjects`; coverage references are traceable to those declarations.
-- Archify DFD specification validation passes 9/9; delivered artifact SHA-256 is `f239f93633dc2081be85a1edbadf1ba434c0ac97a0eab9583c74509a9e2ad526` and automated browser visual checks pass at 1440x900, 1600x1000, 1920x1080, and 2048x1320 in light/dark captures. Human perceptual review remains pending.
-- Archify system architecture specification validation passes 9/9; delivered HTML has SHA-256 `5175943808e6ebb0c8e4424a988c3106175e83a8a0681045ab610a55dfba3f7e` and passes automated browser visual checks at 1440x900, 1600x1000, 1920x1080, and 2048x1320 in light/dark captures. Human perceptual review remains pending.
-- The architecture explicitly separates current Python workflow/OCR/local-profile evidence from target mTLS transport and SPIFFE/SPIRE deployment evidence. The experiment-to-verification edge is evidence-only, not a runtime dependency.
+- Archify DFD specification validation passes 9/9; delivered artifact SHA-256 is `6ee8b5d9f7d362f2c5e59d9a17a13101885be4539e83686fdf3b3ed63af8c2c2` and automated browser visual checks pass at 1440x900, 1600x1000, 1920x1080, and 2048x1320 in light/dark captures. Human perceptual review remains pending.
+- Archify system architecture specification validation passes 9/9; delivered HTML has SHA-256 `32ddcaad099f9b4d1d6ded470a3a1e69f05e0202ccf6d175385d6962125c1a17` and passes automated browser visual checks at 1440x900, 1600x1000, 1920x1080, and 2048x1320 in light/dark captures. Human perceptual review remains pending.
+- The architecture explicitly separates current Python workflow/OCR/local-profile evidence from target mTLS transport and production certificate deployment evidence. The experiment-to-verification edge is evidence-only, not a runtime dependency.
 - Security preflight passes. Quality/container harness profiles remain advisory `not-configured`.
 - `compose.integration.yml` defines healthchecks for the RabbitMQ, PostgreSQL, and RustFS containers. This handoff records no container health observation for the RabbitMQ profile.
 
@@ -48,7 +48,7 @@ The architecture registry is in `architecture/`; generated Archify HTML is exclu
 ## Open evidence and design gaps
 
 - Production gRPC client/deployment is not present; canonical gRPC status mapping is tested with enum/string stand-ins.
-- SPIFFE/SPIRE issuance, trust bundle, Kafka ACL principal mapping, and renewal are not deployed.
+- Production certificate issuance and rotation for mTLS, RabbitMQ broker authorization, and per-service identity mapping are not deployed. The local profile uses one development user `sird` on vhost `/sird`; it has no per-workload RabbitMQ users or permissions.
 - OS-level decoder isolation, model execution, labeled corpus acceptance, numeric thresholds, retention cleanup, and OCR/task p99 are not verified.
 - No live RabbitMQ consumer smoke with broker acknowledgement is recorded.
 - Archive requires explicit human approval.

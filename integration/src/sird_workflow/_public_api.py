@@ -99,20 +99,6 @@ UnroutableMessageError = _transport.UnroutableMessageError
 
 WorkflowService = _transport.WorkflowService
 
-EmptyAuthorizationPolicyError = _transport.EmptyAuthorizationPolicyError
-ExpiredCredentialError = _transport.ExpiredCredentialError
-InvalidCredentialError = _transport.InvalidCredentialError
-MalformedSpiffeIdError = _transport.MalformedSpiffeIdError
-SpiffeAuthorizationPolicy = _transport.SpiffeAuthorizationPolicy
-SpiffeId = _transport.SpiffeId
-SpiffePolicyError = _transport.SpiffePolicyError
-UnauthorizedWorkloadError = _transport.UnauthorizedWorkloadError
-UnknownWorkloadRoleError = _transport.UnknownWorkloadRoleError
-WorkloadCredential = _transport.WorkloadCredential
-WorkloadRole = _transport.WorkloadRole
-authorize_workload = _transport.authorize_workload
-validate_credential = _transport.validate_credential
-
 TASK_EVENT_TYPE = _transport.TASK_EVENT_TYPE
 TaskEvent = _transport.TaskEvent
 

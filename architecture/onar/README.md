@@ -22,4 +22,4 @@ The separate right-hand container topology is represented by `containers.archite
 - Result/error events return from preprocessing and OCR through the message bus to Task Service.
 - Task and worker telemetry flows through OTLP to an OTEL Collector, telemetry backends, and Grafana.
 
-These are proposals. The diagrams explicitly record that the current OpenSpec and `api.md` still define unary `Recognize` without durable OCR jobs. RabbitMQ Streams versus Kafka also remains unresolved.
+These are proposals. The diagrams explicitly record that the current OpenSpec and `api.md` still define unary `Recognize` without durable OCR jobs. Kafka was removed from the repository by owner decision on 2026-10-13. RabbitMQ 4.3 is the workflow transport.

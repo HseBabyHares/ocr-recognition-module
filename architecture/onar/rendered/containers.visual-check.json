@@ -7,8 +7,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "/data/source/hse/study/sird-recognition/architecture/onar/rendered/containers.html",
-    "sha256": "a6e3fcddc86a1f8d20519b89b2c085f31cb39156fedd23c4b2e64715251108a0",
-    "bytes": 816708
+    "sha256": "d80ed2bd119fd21e0d0454269e271874dbf99924393dfd2e67d9d8c9b13d0233",
+    "bytes": 816683
   },
   "state": {
     "detail": "read",

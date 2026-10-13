@@ -152,7 +152,7 @@ Run the focused verification oracles with the verification environment:
 (cd verification && uv run --project . pytest -q tests/test_acceptance_runner.py tests/test_architecture_oracle.py tests/test_corpus.py tests/test_metrics.py tests/test_recognition_oracles.py)
 ```
 
-The verification package's development environment includes SQLAlchemy, `psycopg[binary]`, and `confluent-kafka`, which its full workflow oracles import. The integration package's `test` extra supplies `pytest` for `integration/tests`; it does not provide the verification runtime dependencies.
+The verification package's development environment includes SQLAlchemy, `psycopg[binary]`, and `aio-pika`, which its full workflow oracles import through `sird_workflow`. The integration package's `test` extra supplies `pytest` for `integration/tests`; it does not provide the verification runtime dependencies.
 
 ### Build and delivery checks
 

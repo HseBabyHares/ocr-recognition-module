@@ -8,6 +8,5 @@ __pycache__/
 .env
 integration/.env
 integration/spire/runtime/*
-integration/certs/kafka/*
 generated-gpt-images/
 artifacts/corpus/gpt-images/

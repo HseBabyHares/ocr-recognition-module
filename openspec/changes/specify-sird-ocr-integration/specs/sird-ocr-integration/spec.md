@@ -40,7 +40,7 @@ The system SHALL identify input documents with a typed `artifact_ref` that resol
 
 ### Requirement: SIRD exposes an asynchronous task workflow
 
-The system SHALL create a durable `task_id` before document processing, persist the initial task state, and make task progress and the final result retrievable by that identifier. RabbitMQ 4.3 durable quorum queues, exchanges, and routing keys carry versioned task and result events through the target AMQP workflow. Task messages SHALL use stable identity; Process Service SHALL use manual acknowledgements only after the corresponding PostgreSQL state transition is durable. Task state and the authoritative attempt counter remain outside OCR. The current Kafka profile is migration baseline evidence until RabbitMQ runtime migration is verified.
+The system SHALL create a durable `task_id` before document processing, persist the initial task state, and make task progress and the final result retrievable by that identifier. RabbitMQ 4.3 durable quorum queues, exchanges, and routing keys carry versioned task and result events through the target AMQP workflow. Task messages SHALL use stable identity; Process Service SHALL use manual acknowledgements only after the corresponding PostgreSQL state transition is durable. Task state and the authoritative attempt counter remain outside OCR. The Kafka baseline was removed by owner decision on 2026-10-13.
 
 #### Scenario: Task is accepted for processing
 - **WHEN** an authorized caller submits a valid document-processing request
@@ -223,7 +223,7 @@ Process Service SHALL persist a terminal task/result record before committing th
 
 The first version SHALL run behind one trusted SIRD backend on loopback or a private Docker network and SHALL NOT expose an end-user Task/Process API. The adapter SHALL NOT use a caller-supplied `caller_identity` as transport authentication. Artifact references SHALL be issued for the intended task/service audience and validated before reads. Logs and telemetry SHALL not contain document bytes, raw personal field values, unrestricted intermediate images, secrets, or access credentials.
 
-The target RabbitMQ Compose workflow SHALL use TLS and fail-closed route authorization for Task Service and Process Service. This local profile is a development control; it is not evidence of production workload identity or production broker authorization. The current Kafka TLS client/ACL profile remains migration baseline evidence until RabbitMQ migration is verified.
+The target RabbitMQ Compose workflow SHALL use TLS and fail-closed route authorization for Task Service and Process Service. This local profile is a development control; it is not evidence of production workload identity or production broker authorization. The Kafka baseline, including its TLS client/ACL profile, was removed by owner decision on 2026-10-13.
 
 #### Scenario: Untrusted caller reaches the local boundary
 - **WHEN** a caller outside the trusted backend or private deployment boundary attempts task submission, status retrieval, result retrieval, or artifact access

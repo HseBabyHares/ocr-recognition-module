@@ -16,7 +16,7 @@
     { "id": "consumer", "type": "frontend", "label": "HSE Application", "sublabel": "consumer client", "tag": "external", "pos": [30, 300], "size": [170, 76] },
     { "id": "gateway", "type": "cloud", "label": "gRPC Gateway", "sublabel": "SubmitTask / status / result", "tag": "proposed facade", "pos": [240, 300], "size": [200, 82] },
     { "id": "task", "type": "backend", "label": "Task Service", "sublabel": "durable owner + outbox", "tag": "proposed owner", "pos": [480, 300], "size": [210, 82] },
-    { "id": "bus", "type": "messagebus", "label": "Message Bus", "sublabel": "RabbitMQ / Kafka TBD", "tag": "async transport", "pos": [730, 300], "size": [180, 82] },
+    { "id": "bus", "type": "messagebus", "label": "Message Bus", "sublabel": "RabbitMQ 4.3", "tag": "async transport", "pos": [730, 300], "size": [180, 82] },
     { "id": "preprocess", "type": "backend", "label": "Simplify Service", "sublabel": "validate + preprocess", "tag": "worker", "pos": [960, 170], "size": [160, 82] },
     { "id": "ocr", "type": "backend", "label": "OCR Service", "sublabel": "bounded Recognize", "tag": "worker", "pos": [960, 400], "size": [160, 82] },
     { "id": "postgres", "type": "database", "label": "PostgreSQL", "sublabel": "task state + idempotency", "tag": "state owner", "pos": [480, 500], "size": [210, 82] },
@@ -50,6 +50,6 @@
   "cards": [
     { "dot": "cyan", "title": "Proposed async boundary", "items": ["Task Service owns durable task state inside the OCR module", "Polling uses gRPC GetStatus and GetResult", "OCR Service keeps bounded Recognize execution"] },
     { "dot": "emerald", "title": "Event contract required", "items": ["Events carry schema_version, event_id, request_id, attempt_id, and traceparent", "Preprocess and OCR publish result/error events back through the bus", "Outbox/inbox processing makes redelivery safe"] },
-    { "dot": "rose", "title": "Change relative to current OpenSpec", "items": ["Current OpenSpec declares unary Recognize and no durable OCR jobs", "This diagram proposes Task Service and polling inside the module", "RabbitMQ Streams versus Kafka remains a decision to reconcile"] }
+    { "dot": "rose", "title": "Change relative to current OpenSpec", "items": ["Current OpenSpec declares unary Recognize and no durable OCR jobs", "This diagram proposes Task Service and polling inside the module", "Transport decision closed: RabbitMQ 4.3 (owner decision, 2026-10-13)"] }
   ]
 }

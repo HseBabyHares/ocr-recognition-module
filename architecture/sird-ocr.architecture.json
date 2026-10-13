@@ -12,19 +12,19 @@
         "focus": [
           "sird",
           "workflow",
-          "kafka",
+          "rabbitmq",
           "process",
           "ocr",
           "postgres"
         ],
-        "note": "Задание проходит через доверенный API, Kafka и Process Service к stateless OCR runtime."
+        "note": "Задание проходит через доверенный API, RabbitMQ и Process Service к stateless OCR runtime."
       },
       {
         "id": "durability",
         "label": "Надёжность и публикация",
         "focus": [
           "workflow",
-          "kafka",
+          "rabbitmq",
           "process",
           "postgres",
           "rustfs"
@@ -38,7 +38,7 @@
           "spire",
           "workflow",
           "process",
-          "kafka",
+          "rabbitmq",
           "rustfs",
           "sird"
         ],
@@ -50,17 +50,17 @@
         "focus": [
           "sird",
           "workflow",
-          "kafka",
+          "rabbitmq",
           "process",
           "ocr"
         ],
-        "note": "Submit, outbox, consume, claim, bounded OCR, result/DLQ outbox, broker acknowledgement, then offset commit."
+        "note": "Submit, outbox, consume, claim, bounded OCR, result/DLQ outbox, publisher confirm, then consumer message acknowledgement."
       },
       {
         "id": "state",
         "label": "Состояния задания",
         "focus": [
-          "kafka",
+          "rabbitmq",
           "process",
           "postgres"
         ],
@@ -100,11 +100,11 @@
       ]
     },
     {
-      "id": "kafka",
+      "id": "rabbitmq",
       "type": "messagebus",
-      "label": "Kafka 4.3.1 KRaft",
-      "sublabel": "TLS topics: task / result / DLQ",
-      "tag": "source offsets",
+      "label": "RabbitMQ 4.3",
+      "sublabel": "AMQPS quorum queues",
+      "tag": "manual ack",
       "pos": [
         540,
         260
@@ -226,7 +226,7 @@
       "label": "Доверенная интеграционная граница",
       "wraps": [
         "workflow",
-        "kafka",
+        "rabbitmq",
         "process",
         "postgres",
         "rustfs"
@@ -243,7 +243,7 @@
       "kind": "region",
       "label": "Локальный профиль: loopback ports",
       "wraps": [
-        "kafka",
+        "rabbitmq",
         "postgres",
         "rustfs"
       ]
@@ -261,14 +261,14 @@
     {
       "id": "workflow-task",
       "from": "workflow",
-      "to": "kafka",
+      "to": "rabbitmq",
       "label": "task outbox → sird.task.v1",
       "variant": "dashed",
       "labelDy": -58
     },
     {
-      "id": "kafka-process",
-      "from": "kafka",
+      "id": "rabbitmq-process",
+      "from": "rabbitmq",
       "to": "process",
       "label": "consume task event",
       "variant": "emphasis",
@@ -312,7 +312,7 @@
     {
       "id": "result-publish",
       "from": "process",
-      "to": "kafka",
+      "to": "rabbitmq",
       "label": "result + DLQ outbox publication",
       "variant": "dashed",
       "fromSide": "top",
@@ -365,7 +365,7 @@
       "title": "Рабочий путь",
       "items": [
         "SIRD target boundary for backend-only Task Service; transport is not deployed",
-        "Kafka доставляет versioned task event",
+        "RabbitMQ доставляет versioned task event",
         "Process Service вызывает stateless OCR runtime"
       ]
     },
@@ -375,7 +375,7 @@
       "items": [
         "PostgreSQL хранит shared attempt budget и fencing",
         "Result/DLQ outbox повторяет публикацию со стабильным event ID",
-        "Source offset commit зависит от durable outcome и broker acknowledgement"
+        "Consumer acknowledgement зависит от durable outcome и publisher confirm"
       ]
     },
     {

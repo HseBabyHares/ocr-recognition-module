@@ -27,7 +27,7 @@
 
 ## 4. Workflow reliability and security
 
-- [x] 4.1 Implement Task/Process workflow in a separate integration package in this repository: trusted-SIRD-backend-only task submission, PostgreSQL initial state and task outbox, RabbitMQ task-route delivery as the target, status retrieval, and result retrieval under `task_id`. The current Kafka delivery remains migration baseline evidence until RabbitMQ runtime migration is verified.
+- [x] 4.1 Implement Task/Process workflow in a separate integration package in this repository: trusted-SIRD-backend-only task submission, PostgreSQL initial state and task outbox, RabbitMQ task-route delivery as the target, status retrieval, and result retrieval under `task_id`. The Kafka baseline was removed by owner decision on 2026-10-13.
 - [x] 4.2 Implement Process Service idempotency with unique `(task_id, request_id)`, divergent-payload rejection, concurrent-winner/reuse behavior, and timeout-result reconciliation.
 - [x] 4.3 Define and implement one retry matrix for every prototype technical code and relevant gRPC status, including cancellation, material/model readiness, and execution limits; timeout-vs-completed-OCR reconciliation remains task 4.2.
 - [x] 4.4 Make Process Service own one shared three-attempt budget across gRPC attempts and RabbitMQ redelivery; persist attempt transitions before durable acknowledgement. The current Kafka offset/redelivery path remains migration baseline evidence.
@@ -37,7 +37,7 @@
 ## 5. Runtime, experiment, and operations migration
 
 - [x] 5.1 Implement or wire the stateless OCR runtime around the migrated computation ports without durable SIRD task state.
-- [x] 5.2 Build separate OCR production, SIRD integration, test, and experimental packages; exclude workflow/PostgreSQL dependencies, Litestar, Granian, evaluator, corpus, and experiment-only dependencies from the production OCR image. The current Kafka client is migration-baseline content, not the selected target dependency.
+- [x] 5.2 Build separate OCR production, SIRD integration, test, and experimental packages; exclude workflow/PostgreSQL dependencies, Litestar, Granian, evaluator, corpus, and experiment-only dependencies from the production OCR image. The Kafka baseline, including its client dependency, was removed by owner decision on 2026-10-13.
 - [x] 5.3 Migrate `FR-EXP-001` through `FR-EXP-005` and the experiment contract: immutable plan, resolved variants, per-sample terminal records, truth isolation, independent evaluator, metrics, and selection evidence.
 - [x] 5.4 Migrate deployment/startup/update/rollback rules and immutable profile/version/calibration handling.
 - [x] 5.5 Migrate safe correlated observability fields and stage/resource/quality measurements without personal values or document bytes.
@@ -57,4 +57,4 @@
 - [x] 7.1 Run independent architecture, security/threat, traceability, and adversarial reviews against OpenSpec and prototype evidence.
 - [x] 7.2 Validate all OpenSpec artifacts and run applicable FADD harness checks; record configured, not-configured, findings, and blocked gates without weakening them.
 - [x] 7.3 Produce the migration reconciliation report showing every prototype source file and stable ID mapped to an OpenSpec requirement/task/oracle.
-- [x] 7.4 **OWNER DECISION — Alpha release approved.** The owner approves the Alpha release with superseded Kafka implementation and prototype documents retained as migration evidence. Archive/removal is not part of Alpha and requires a later explicit owner decision; it does not block the Alpha release.
+- [x] 7.4 **OWNER DECISION — Alpha release approved.** The owner approves the Alpha release with superseded Kafka implementation and prototype documents retained as migration evidence. Archive/removal is not part of Alpha and requires a later explicit owner decision; it does not block the Alpha release. The Kafka baseline was removed by owner decision on 2026-10-13.

@@ -30,7 +30,7 @@ This migration ledger keeps the prototype as evidence until every row has an Ope
 
 ## First-version scope decision
 
-The first version is a local private deployment for a trusted SIRD backend. Its mandatory controls are task-bound artifact authorization, checksum/media/size validation, bounded decoding and model allowlists, safe logs, scratch cleanup, bounded retries, RabbitMQ TLS and fail-closed route authorization in the target Docker Compose profile. Docker Compose is the first integrated release gate. The current Kafka TLS/ACL profile remains migration baseline evidence until RabbitMQ runtime migration is verified and is not evidence of the selected target or production identity.
+The first version is a local private deployment for a trusted SIRD backend. Its mandatory controls are task-bound artifact authorization, checksum/media/size validation, bounded decoding and model allowlists, safe logs, scratch cleanup, bounded retries, RabbitMQ TLS and fail-closed route authorization in the target Docker Compose profile. Docker Compose is the first integrated release gate. The Kafka baseline, including its TLS/ACL profile, was removed by owner decision on 2026-10-13.
 
 SPIFFE/SPIRE issuance and renewal, trust-bundle distribution, RabbitMQ workload identity and broker authorization, production ACL operations, service mesh, Helm/Kubernetes deployment, an OS-level decoder sandbox, protected production reference data, protected-corpus quality acceptance, and numeric p99 gates are production backlog items. They remain blocked, deferred, or not-run until the SIRD deployment, workload, corpus, identity decisions, and representative workload exist.
 
@@ -97,7 +97,7 @@ The following index assigns one evidence owner and one primary oracle to every s
 - The owner approved the first Alpha release on the Docker Compose RabbitMQ profile.
 - Alpha requires RabbitMQ TLS/quorum routes, task-bound artifact controls, bounded decoder/model controls, safe metadata, available cleanup evidence, local workflow tests, and the observed broker transport smoke.
 - Helm/Kubernetes, multi-node RabbitMQ recovery, production workload identity and broker authorization, protected-corpus acceptance, representative production workload, and numeric p99 remain post-Alpha backlog.
-- Tasks `4.6`, `6.4`, `6.6`, and `7.4` are closed for the Alpha scope. Their post-Alpha work remains explicitly listed in the task text. Prototype and Kafka migration evidence remains retained; archive/removal is not part of Alpha.
+- Tasks `4.6`, `6.4`, `6.6`, and `7.4` are closed for the Alpha scope. Their post-Alpha work remains explicitly listed in the task text. Prototype migration evidence remains retained; archive/removal is not part of Alpha. The Kafka baseline was removed by owner decision on 2026-10-13.
 - Tasks `3.2` and `3.4` in `add-gliner-decision-stage` are closed for the Alpha scope. Hard model isolation/interrupt enforcement and runtime-owned optional-stage telemetry remain post-Alpha backlog.
 
 This is an owner-approved release boundary. It does not claim production readiness, protected-corpus quality, multi-node availability, or production latency.

@@ -12,7 +12,7 @@
         "focus": [
           "sird",
           "task",
-          "kafka",
+          "rabbitmq",
           "process",
           "ocr",
           "postgres",
@@ -27,7 +27,7 @@
         "focus": [
           "sird",
           "task",
-          "kafka",
+          "rabbitmq",
           "process",
           "ocr"
         ],
@@ -39,10 +39,10 @@
         "focus": [
           "process",
           "postgres",
-          "kafka",
+          "rabbitmq",
           "sird"
         ],
-        "note": "Durable terminal state precedes broker acknowledgement and source offset commit."
+        "note": "Durable terminal state precedes publisher confirm and consumer message acknowledgement."
       },
       {
         "id": "identity-dataflow",
@@ -51,7 +51,7 @@
           "spire",
           "task",
           "process",
-          "kafka"
+          "rabbitmq"
         ],
         "note": "Identity metadata is a production target; the local profile uses mTLS credentials."
       }
@@ -89,10 +89,10 @@
       ]
     },
     {
-      "id": "kafka",
+      "id": "rabbitmq",
       "type": "messagebus",
-      "label": "Kafka 4.3.1",
-      "sublabel": "task / result / DLQ",
+      "label": "RabbitMQ 4.3",
+      "sublabel": "task / result / retry / terminal",
       "tag": "data zone",
       "pos": [
         480,
@@ -200,7 +200,7 @@
       "kind": "security-group",
       "label": "Data trust zone",
       "wraps": [
-        "kafka",
+        "rabbitmq",
         "postgres",
         "rustfs"
       ]
@@ -243,18 +243,18 @@
       "labelDy": 74
     },
     {
-      "id": "task-kafka",
+      "id": "task-rabbitmq",
       "from": "task",
-      "to": "kafka",
+      "to": "rabbitmq",
       "label": "durable task outbox",
       "variant": "dashed",
       "labelDy": -60
     },
     {
-      "id": "kafka-process",
-      "from": "kafka",
+      "id": "rabbitmq-process",
+      "from": "rabbitmq",
       "to": "process",
-      "label": "task event + offset",
+      "label": "task event + manual ack",
       "variant": "emphasis",
       "labelDy": -60
     },
@@ -287,9 +287,9 @@
       "labelDx": 80
     },
     {
-      "id": "process-kafka",
+      "id": "process-rabbitmq",
       "from": "process",
-      "to": "kafka",
+      "to": "rabbitmq",
       "label": "result / DLQ publication",
       "variant": "dashed",
       "fromSide": "top",

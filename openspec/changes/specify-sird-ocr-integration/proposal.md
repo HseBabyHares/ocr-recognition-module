@@ -14,7 +14,7 @@ SIRD Recognition has a broad prototype specification but no single executable Op
 - Define a test-only Litestar + Granian HTTP adapter.
 - Define the experimental runner/evaluator as a separate runtime excluded from the production image.
 - Define SIRD-owned RustFS (S3-compatible) artifact access through task-bound `artifact_ref` and service credentials.
-- Define the asynchronous SIRD workflow through Task Service, RabbitMQ 4.3 durable quorum queues using `aio-pika`, Process Service, PostgreSQL, and `task_id`. The current Kafka profile remains migration baseline evidence until the RabbitMQ runtime migration is verified.
+- Define the asynchronous SIRD workflow through Task Service, RabbitMQ 4.3 durable quorum queues using `aio-pika`, Process Service, PostgreSQL, and `task_id`. The Kafka baseline was removed by owner decision on 2026-10-13.
 - Define unary gRPC + Protobuf communication from Process Service to OCR Service through `Recognize`.
 - Define MVP classification for the old SNILS card, ADI-REG 2019, and ADI-REG 2023 with deterministic strict uncertainty behavior.
 - Define explicit technical/subject/result-completeness mappings, retry taxonomy, idempotency, finite deadline, local TLS/mTLS boundary, result publication, redelivery recovery, and transactional outbox.
@@ -40,6 +40,6 @@ SIRD Recognition has a broad prototype specification but no single executable Op
 ## Impact
 
 - Replaces the prototype as the implementation source after migration reconciliation. The owner selected the current repository root for the Python implementation; implementation tasks remain open until their behavior is verified.
-- Establishes contracts for Task Service, Process Service, OCR Service, gRPC/Protobuf, artifact access, PostgreSQL task state, RabbitMQ exchanges/queues/routing keys, classification, field diagnostics, experiments, acceptance, and operations. Kafka references in current-state evidence identify the migration baseline, not the selected target.
+- Establishes contracts for Task Service, Process Service, OCR Service, gRPC/Protobuf, artifact access, PostgreSQL task state, RabbitMQ exchanges/queues/routing keys, classification, field diagnostics, experiments, acceptance, and operations. The Kafka baseline was removed by owner decision on 2026-10-13.
 - Supersedes the prototype's caller-selected form/profile behavior only for the MVP production `Recognize` facade; internal OCR stages and their transport-neutral contracts remain.
 - Requires explicit reconciliation where prototype transport, task, retry, or deployment details were intentionally open.

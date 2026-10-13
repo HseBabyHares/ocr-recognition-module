@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
   "title": "SIRD OCR Integration Adversary Model",
-  "scope": "Task submission and status/result response, Kafka task/result/DLQ transport, Process Service, stateless OCR runtime, PostgreSQL workflow state, RustFS artifacts, and workload identity boundaries shown in security/threat-model/dfd.json and architecture/rendered/sird-ocr-dfd.html.",
+  "scope": "Task submission and status/result response, RabbitMQ 4.3 task/result/retry/terminal queue transport, Process Service, stateless OCR runtime, PostgreSQL workflow state, RustFS artifacts, and workload identity boundaries shown in security/threat-model/dfd.json and architecture/rendered/sird-ocr-dfd.html.",
   "securityObjectives": [
     "Accept task and result operations only from authorized workloads.",
-    "Preserve task, attempt, offset, outbox, artifact, and result integrity.",
+    "Preserve task, attempt, delivery acknowledgement, outbox, artifact, and result integrity.",
     "Prevent unauthorized disclosure of document-derived data, task metadata, and credentials.",
-    "Bound resource consumption and preserve partition progress under malformed or failing work.",
+    "Bound resource consumption and preserve queue progress under malformed or failing work.",
     "Keep terminal outcomes and security-relevant actions attributable to a workload identity."
   ],
   "assets": [
@@ -22,14 +22,14 @@
       "name": "Unauthorized external caller",
       "position": "outside the application trust zone",
       "capabilities": ["Send network requests to an exposed Task Service endpoint", "Replay or modify task identifiers and capabilities", "Submit malformed or high-volume tasks"],
-      "cannotAssume": ["A valid workload identity", "Kafka, PostgreSQL, or RustFS network access", "SIRD end-user authorization"],
+      "cannotAssume": ["A valid workload identity", "RabbitMQ, PostgreSQL, or RustFS network access", "SIRD end-user authorization"],
       "goals": ["Impersonate SIRD", "Read or alter document-derived data", "Exhaust task or OCR capacity"]
     },
     {
       "id": "ADV-02",
       "name": "Compromised integration workload",
       "position": "inside the application trust zone with one valid workload identity",
-      "capabilities": ["Invoke peer service operations permitted by deployment policy", "Attempt Kafka publication or consumption", "Submit stale, duplicated, or forged workflow messages"],
+      "capabilities": ["Invoke peer service operations permitted by deployment policy", "Attempt RabbitMQ publication or consumption", "Submit stale, duplicated, or forged workflow messages"],
       "cannotAssume": ["Database superuser access", "Other workload roles", "Valid fencing token for another task"],
       "goals": ["Elevate from one service role", "Tamper with workflow state or result events", "Read data outside assigned tasks"]
     },

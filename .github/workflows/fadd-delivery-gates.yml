@@ -133,12 +133,15 @@ jobs:
           git cat-file -e "${base:-0}^{commit}" 2>/dev/null || base=HEAD^
           echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Validate architecture and threat evidence
+        env:
+          MODE: ${{ steps.policy.outputs.active == 'true' && 'strict' || 'advisory' }}
+          BASE: ${{ steps.range.outputs.base }}
         run: >-
           python3 tools/architecture/validate.py
           --repo .
-          --mode ${{ steps.policy.outputs.active == 'true' && 'strict' || 'advisory' }}
-          --base "${{ steps.range.outputs.base }}"
-          --head "${{ github.sha }}"
+          --mode "$MODE"
+          --base "$BASE"
+          --head "$GITHUB_SHA"
           --out artifacts/architecture/report.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()

@@ -66,11 +66,14 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Build bounded and redacted review package
         id: context
+        env:
+          BASE: ${{ steps.range.outputs.base }}
+          HEAD: ${{ steps.range.outputs.head }}
         run: >-
           node tools/ai-gates/prepare-context.mjs
           --repo .
-          --base "${{ steps.range.outputs.base }}"
-          --head "${{ steps.range.outputs.head }}"
+          --base "$BASE"
+          --head "$HEAD"
           --out artifacts/ai-context
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with: {name: fadd-ai-context, path: artifacts/ai-context, if-no-files-found: error}

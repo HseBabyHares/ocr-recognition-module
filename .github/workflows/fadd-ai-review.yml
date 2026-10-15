@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: fadd-ai-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   FADD_AI_GATE_MODE: ${{ vars.FADD_AI_GATE_MODE || 'shadow' }}
 

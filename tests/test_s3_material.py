@@ -13,7 +13,7 @@ from tests._object_store import ObjectStore, reader
 class TestS3MaterialReader:
     def test_signed_read(self, store: str) -> None:
         body = reader(store).read(
-            fixtures.OBJECT_ID, expected_checksum=fixtures.CHECKSUM
+            fixtures.OBJECT_KEY, expected_checksum=fixtures.CHECKSUM
         )
 
         assert body == fixtures.IMAGE
@@ -25,7 +25,7 @@ class TestS3MaterialReader:
         other = hashlib.sha256(b"other").hexdigest()
 
         with pytest.raises(RecognitionError) as mismatch:
-            reader(store).read(fixtures.OBJECT_ID, expected_checksum=other)
+            reader(store).read(fixtures.OBJECT_KEY, expected_checksum=other)
 
         assert mismatch.value.code is TechnicalCode.CAPABILITY_MISMATCH
 

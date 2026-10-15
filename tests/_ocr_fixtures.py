@@ -18,7 +18,8 @@ KEY_HEX = "abababababababababababababababababababababababababababababababab"
 NOW = datetime.fromisoformat("2026-10-13T12:00:00+00:00")
 IMAGE = b"synthetic-image-bytes"
 CHECKSUM = hashlib.sha256(IMAGE).hexdigest()
-OBJECT_ID = "objects/1"
+OBJECT_ID = "src-1"
+OBJECT_KEY = "task-service/sources/1/0"
 VERIFIER = CapabilityVerifier(
     keys=parse_keys(f"v1-k1:{KEY_HEX}"),
     issuer="process-service",
@@ -37,6 +38,7 @@ def issue(**overrides: object) -> str:
         "issuer": "process-service",
         "media_type": "image/jpeg",
         "object_id": OBJECT_ID,
+        "object_key": OBJECT_KEY,
         "request_id": grpc_fixtures.REQUEST_ID,
         "size": len(IMAGE),
         "task_id": grpc_fixtures.TASK_ID,

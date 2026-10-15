@@ -26,6 +26,7 @@ _TEXT_CLAIMS = frozenset(
         "issuer",
         "media_type",
         "object_id",
+        "object_key",
         "request_id",
         "task_id",
     )

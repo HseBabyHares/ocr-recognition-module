@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sird-ocr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sird-ocr.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sird-ocr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sird-ocr.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        seccompProfile:
+          type: {{ .Values.securityContext.seccompProfile.type }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: {{ .Values.tmp.sizeLimit }}
+        {{- if .Values.tls.secretName }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.tls.secretName }}
+        {{- end }}
+      containers:
+        - name: {{ include "sird-ocr.name" . }}
+          {{- if .Values.image.digest }}
+          image: {{ .Values.image.repository }}@{{ .Values.image.digest }}
+          {{- else }}
+          image: {{ .Values.image.repository }}:{{ required "image.tag is required when image.digest is empty" .Values.image.tag }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop: ["ALL"]
+          envFrom:
+            - secretRef:
+                name: {{ required "existingSecret is required" .Values.existingSecret }}
+          env:
+            - name: SIRD_OCR_LISTEN
+              value: "[::]:{{ .Values.service.port }}"
+            - name: SIRD_OCR_MAX_WORKERS
+              value: {{ .Values.server.maxWorkers | quote }}
+            {{- with .Values.server.policyId }}
+            - name: SIRD_OCR_POLICY_ID
+              value: {{ . | quote }}
+            {{- end }}
+            - name: CAPABILITY_ISSUER
+              value: {{ required "capability.issuer is required" .Values.capability.issuer | quote }}
+            - name: CAPABILITY_AUDIENCE
+              value: {{ required "capability.audience is required" .Values.capability.audience | quote }}
+            - name: S3_ENDPOINT
+              value: {{ required "storage.endpoint is required" .Values.storage.endpoint | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.storage.bucket | quote }}
+            - name: S3_REGION
+              value: {{ .Values.storage.region | quote }}
+            - name: SIRD_TESSERACT_SHA256
+              value: {{ .Values.tessdata.implementationSha256 | quote }}
+            - name: SIRD_TESSDATA_SHA256
+              value: {{ .Values.tessdata.dataSha256 | quote }}
+            {{- if .Values.tls.secretName }}
+            - name: SIRD_OCR_TLS_CERT
+              value: /etc/sird-ocr/tls/tls.crt
+            - name: SIRD_OCR_TLS_KEY
+              value: /etc/sird-ocr/tls/tls.key
+            - name: SIRD_OCR_TLS_CLIENT_CA
+              value: /etc/sird-ocr/tls/ca.crt
+            {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.tls.secretName }}
+            - name: tls
+              mountPath: /etc/sird-ocr/tls
+              readOnly: true
+            {{- end }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          # shortcut: TCP probes; the server has no grpc.health.v1 service yet.
+          startupProbe:
+            tcpSocket:
+              port: grpc
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

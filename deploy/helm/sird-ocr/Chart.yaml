@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sird-ocr
+description: SNILS OCR gRPC service (sird.ocr.v1 OcrService)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

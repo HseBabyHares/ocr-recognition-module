@@ -25,7 +25,7 @@ The local profile publishes RabbitMQ (AMQPS `5671`, management `15672`), Postgre
 
 ## Current evidence
 
-- Root tests: 90 passed.
+- Root tests: 186 passed.
 - Integration tests: 76 passed.
 - Verification tests: 25 passed.
 - Experiment tests: 6 passed.
@@ -47,7 +47,8 @@ The architecture registry is in `architecture/`; generated Archify HTML is exclu
 - The Python clone metric uses six-statement/50-token canonical token shingles, preserves attribute and callee names, and reports one finding per clone class with coalesced maximal locations. Clone fingerprints use the left-most window digest and are compatible with `quality/baseline.json` acceptance. It does not detect same-file clones, clones below the shingle threshold, or semantic near-clones; the repeated six-copy `_require_text` helper is four statements/23 AST nodes and is intentionally unreported.
 ## Open evidence and design gaps
 
-- Production gRPC client/deployment is not present; canonical gRPC status mapping is tested with enum/string stand-ins.
+- The `sird-ocr-server` gRPC entry point serves `sird.ocr.v1 OcrService` (`contract_version` must be `sird.ocr.v1`). It verifies the eleven-claim HMAC capability from sird-process-service and reads the source from S3 by the signed `object_key` claim; `object_id` stays opaque. The image is `Dockerfile`; the chart is `deploy/helm/sird-ocr`. One local Task API → Process → Recognition run reached `RECOGNIZED` with a `PARTIAL` result; result content was not reviewed.
+- The policy ids, name order, capability issuer, audience and key id are proposals in sird-process-service `deploy/.env.example`; team agreement is pending. The `object_key` claim needs the matching sird-process-service change. The server has no `grpc.health.v1` service, so the chart probes TCP. S3 reads do not pin an object version id.
 - Production certificate issuance and rotation for mTLS, RabbitMQ broker authorization, and per-service identity mapping are not deployed. The local profile uses one development user `sird` on vhost `/sird`; it has no per-workload RabbitMQ users or permissions.
 - OS-level decoder isolation, model execution, labeled corpus acceptance, numeric thresholds, retention cleanup, and OCR/task p99 are not verified.
 - No live RabbitMQ consumer smoke with broker acknowledgement is recorded.

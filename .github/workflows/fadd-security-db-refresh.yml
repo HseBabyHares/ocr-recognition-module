@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   refresh:
+    name: refresh security databases
     runs-on: ubuntu-latest
     steps:
       # runner context is not allowed in job-level env

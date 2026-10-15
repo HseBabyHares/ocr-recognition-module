@@ -30,7 +30,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     printf 'Unsupported syntax in %s\n' "$env_file" >&2
     exit 1
   }
-  if [[ "$value" == *"'"* || "$value" == *'"'* || "$value" == *'\\'* ||
+  if [[ "$value" == *"'"* || "$value" == *'"'* || "$value" == *\\* ||
         "$value" == *'$'* || "$value" == *'`'* ]]; then
     printf 'Only plain KEY=VALUE syntax is supported in %s\n' "$env_file" >&2
     exit 1

@@ -30,6 +30,7 @@ class CapabilityClaims:
     """Signed claims that bind one object version to one task."""
 
     object_id: str
+    object_key: str
     generation: str
     checksum: str
     media_type: str
@@ -62,6 +63,7 @@ class CapabilityVerifier:
             raise RecognitionError(TechnicalCode.CAPABILITY_MISMATCH)
         return CapabilityClaims(
             object_id=claims["object_id"],
+            object_key=claims["object_key"],
             generation=claims["generation"],
             checksum=claims["checksum"],
             media_type=claims["media_type"],

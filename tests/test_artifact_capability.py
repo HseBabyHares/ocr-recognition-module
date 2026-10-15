@@ -19,6 +19,7 @@ class TestCapabilityVerifier:
         )
 
         assert claims.object_id == fixtures.OBJECT_ID
+        assert claims.object_key == fixtures.OBJECT_KEY
         assert claims.size == len(fixtures.IMAGE)
 
     @pytest.mark.parametrize(

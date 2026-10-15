@@ -60,7 +60,7 @@ class CapabilityPrepare:
                 "size": claims.size,
                 "generation": claims.generation,
             },
-            prepared_artifact=claims.object_id,
+            prepared_artifact=claims.object_key,
             page_index=0,
         )
         return stages.PreparedDocument(

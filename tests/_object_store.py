@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from sird_recognition.s3_material import S3MaterialReader
-from tests._ocr_fixtures import IMAGE, OBJECT_ID
+from tests._ocr_fixtures import IMAGE, OBJECT_KEY
 
 BUCKET = "bucket"
 
@@ -37,7 +37,7 @@ class ObjectStore(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - http.server API
         """Return the object or 404."""
         ObjectStore.authorization = self.headers.get("Authorization", "")
-        found = self.path == f"/{BUCKET}/{OBJECT_ID}"
+        found = self.path == f"/{BUCKET}/{OBJECT_KEY}"
         self.send_response(HTTPStatus.OK if found else HTTPStatus.NOT_FOUND)
         self.end_headers()
         if found:

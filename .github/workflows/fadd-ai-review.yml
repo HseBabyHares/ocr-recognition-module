@@ -59,9 +59,11 @@ jobs:
             # zero SHA on a new branch, unfetched SHA after a force push
             git cat-file -e "${base:-0}^{commit}" 2>/dev/null || base="$head^"
           fi
-          echo "base=$base" >> "$GITHUB_OUTPUT"
-          echo "head=$head" >> "$GITHUB_OUTPUT"
-          echo "trusted_source=$trusted" >> "$GITHUB_OUTPUT"
+          {
+            echo "base=$base"
+            echo "head=$head"
+            echo "trusted_source=$trusted"
+          } >> "$GITHUB_OUTPUT"
       - name: Build bounded and redacted review package
         id: context
         run: >-

@@ -27,7 +27,8 @@ jobs:
         with: {python-version: "3.14"}
       - name: Install pinned OpenSpec when enabled
         if: ${{ hashFiles('openspec/**/*') != '' }}
-        run: npm install --no-save --no-package-lock --ignore-scripts @fission-ai/openspec@1.13.1
+        # pinned version, install scripts disabled
+        run: npm install --no-save --no-package-lock --ignore-scripts @fission-ai/openspec@1.13.1 # zizmor: ignore[adhoc-packages]
       - run: node tools/harness/checks/run-all.mjs
 
   meta:

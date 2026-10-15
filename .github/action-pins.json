@@ -8,8 +8,8 @@
       "immutable": true
     },
     "actions/setup-node": {
-      "ref": "49933ea5288caeca8642d1e84afbd3f7d6820020",
-      "version": "v4.4.0",
+      "ref": "949feb2413d6458794dcd2491c4babbbce0c15c1",
+      "version": "v7.1.0",
       "immutable": true
     },
     "actions/setup-python": {

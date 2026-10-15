@@ -109,6 +109,7 @@ def _build_requests(
         artifact_capability=capability,
         limits=limits,
         policy_ref=policy_ref,
+        task_id=identity[0],
     )
     return domain_request, stage_context
 

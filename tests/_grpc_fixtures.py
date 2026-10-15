@@ -161,6 +161,7 @@ def expected_state() -> tuple[
         artifact_capability=CAPABILITY,
         limits=domain_request.limits,
         policy_ref=POLICY_ID,
+        task_id=TASK_ID,
     )
     return domain_request, stage_context
 

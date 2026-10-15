@@ -3,12 +3,18 @@ name = "sird-recognition"
 version = "0.1.0"
 description = "SIRD document recognition"
 requires-python = ">=3.14"
-dependencies = ["opencv-python-headless>=4.10"]
+dependencies = [
+    "grpcio>=1.84.0",
+    "opencv-python-headless>=4.10",
+    "protobuf>=7.36.2",
+]
+
+[project.scripts]
+sird-ocr-server = "sird_recognition.ocr_server:main"
 
 [dependency-groups]
 dev = [
     "granian>=2.8.3",
-    "grpcio>=1.84.0",
     "grpcio-tools>=1.84.0",
     "litestar>=2.24.0",
     "pytest>=9.1.1",

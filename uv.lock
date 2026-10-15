@@ -772,13 +772,14 @@ name = "sird-recognition"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "grpcio" },
     { name = "opencv-python-headless" },
+    { name = "protobuf" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "granian" },
-    { name = "grpcio" },
     { name = "grpcio-tools" },
     { name = "litestar" },
     { name = "pytest" },
@@ -789,12 +790,15 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "opencv-python-headless", specifier = ">=4.10" }]
+requires-dist = [
+    { name = "grpcio", specifier = ">=1.84.0" },
+    { name = "opencv-python-headless", specifier = ">=4.10" },
+    { name = "protobuf", specifier = ">=7.36.2" },
+]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "granian", specifier = ">=2.8.3" },
-    { name = "grpcio", specifier = ">=1.84.0" },
     { name = "grpcio-tools", specifier = ">=1.84.0" },
     { name = "litestar", specifier = ">=2.24.0" },
     { name = "pytest", specifier = ">=9.1.1" },

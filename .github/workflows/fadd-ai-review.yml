@@ -55,7 +55,9 @@ jobs:
           elif [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             base="${INPUT_BASE:-HEAD^}"; head="${INPUT_HEAD:-HEAD}"; trusted=true
           else
-            base="${BEFORE:-HEAD^}"; head="${SHA:-HEAD}"; trusted=true
+            base="$BEFORE"; head="${SHA:-HEAD}"; trusted=true
+            # zero SHA on a new branch, unfetched SHA after a force push
+            git cat-file -e "${base:-0}^{commit}" 2>/dev/null || base="$head^"
           fi
           echo "base=$base" >> "$GITHUB_OUTPUT"
           echo "head=$head" >> "$GITHUB_OUTPUT"

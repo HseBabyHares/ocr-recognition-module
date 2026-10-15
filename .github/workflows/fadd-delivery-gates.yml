@@ -127,7 +127,11 @@ jobs:
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
-        run: echo "base=${PR_BASE:-${BEFORE:-HEAD^}}" >> "$GITHUB_OUTPUT"
+        run: |
+          base="${PR_BASE:-$BEFORE}"
+          # zero SHA on a new branch, unfetched SHA after a force push
+          git cat-file -e "${base:-0}^{commit}" 2>/dev/null || base=HEAD^
+          echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Validate architecture and threat evidence
         run: >-
           python3 tools/architecture/validate.py

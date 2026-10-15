@@ -18,6 +18,7 @@ class StageContext:
     artifact_capability: str
     limits: Mapping[str, int | float]
     policy_ref: str
+    task_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

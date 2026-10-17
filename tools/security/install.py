@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import urllib.error
 import urllib.request
 import venv
 import zipfile
@@ -321,9 +322,12 @@ def main():
         print(json.dumps(result, indent=2))
         return 0
     except Exception as e:
+        error = str(e)
+        if isinstance(e, urllib.error.HTTPError):
+            error += f" {e.url}: {e.read(300).decode(errors='replace')}"
         print(
             json.dumps(
-                {"schemaVersion": "1.0", "status": "blocked", "error": str(e)},
+                {"schemaVersion": "1.0", "status": "blocked", "error": error},
                 indent=2,
             ),
             file=sys.stderr,

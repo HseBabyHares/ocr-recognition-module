@@ -25,6 +25,7 @@ This repository owns:
 - `Prepare`, `Probe`, `Resolve`, and `ExecuteProfile` stage contracts;
 - OCR, candidate-extraction, field-result, and technical-status models;
 - synchronous unary gRPC request and response mapping;
+- the `sird-ocr-server` gRPC service, its image, and its Helm chart;
 - the separate `sird-workflow` integration package;
 - test-only HTTP and in-memory task adapters;
 - deterministic experiment and verification packages;
@@ -38,7 +39,7 @@ This repository does not own:
 - production certificate issuance and rotation for mTLS;
 - a production OCR model or an accepted labeled corpus.
 
-Workload identity uses mTLS client certificates and RabbitMQ broker authorization. The current integration handoff records that production gRPC deployment and production certificate issuance are not yet present. The owner dropped SPIFFE/SPIRE on 2026-10-13. The old local profile is isolated in `integration/spire/` (`integration/spire/compose.yml`) and is not supported. See [`handoff/sird-ocr-integration.md`](handoff/sird-ocr-integration.md).
+Workload identity uses mTLS client certificates and RabbitMQ broker authorization. Production certificate issuance is not yet present. The owner dropped SPIFFE/SPIRE on 2026-10-13. The old local profile is isolated in `integration/spire/` (`integration/spire/compose.yml`) and is not supported. See [`handoff/sird-ocr-integration.md`](handoff/sird-ocr-integration.md).
 
 ## Quick start
 
@@ -65,9 +66,76 @@ The root package declares `opencv-python-headless` as its runtime dependency. Th
 uv run --project . --group dev pytest -q tests
 ```
 
-A successful run exits with status `0`. The current tree passes the root suite with 170 tests.
+A successful run exits with status `0`.
 
 This path covers the transport-neutral runtime and its gRPC contract tests. It does not start Docker, a broker, a database, or a model download.
+
+## Run the OCR service
+
+The deployable module is the gRPC server `sird-ocr-server`. It serves `sird.ocr.v1.OcrService/Recognize` on port `50051`. Its only caller is `sird-process-service`. The server checks the HMAC capability from Process, reads the image from S3 by the signed `object_key`, and returns the recognition result.
+
+| What | Where |
+| --- | --- |
+| Image source | [`Dockerfile`](Dockerfile) at the repository root |
+| Published image | `ghcr.io/hsebabyhares/sird-ocr:main` and `:sha-<commit>`, built by [`sird-ocr-image.yml`](.github/workflows/sird-ocr-image.yml) on every push to `main` |
+| Helm chart | [`deploy/helm/sird-ocr/`](deploy/helm/sird-ocr/README.md) |
+| Settings | [`src/sird_recognition/ocr_server.py`](src/sird_recognition/ocr_server.py) docstring |
+
+The GHCR package is private. Log in with a GitHub token that has `read:packages`:
+
+```bash
+docker login ghcr.io -u <github-user>
+```
+
+### Settings
+
+| Variable | Required | Value |
+| --- | --- | --- |
+| `CAPABILITY_KEYS` | yes | `kid:hex` with a 64-hex key, for example `v1-k1:<hex>`. Process must sign with the same key id and key. |
+| `CAPABILITY_ISSUER`, `CAPABILITY_AUDIENCE` | yes | Must equal the Process values, for example `process-service` and `ocr.service`. |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | yes | The object store and bucket where `sird-task-service` stores uploads. |
+| `S3_REGION` | no | Default `us-east-1`. |
+| `SIRD_OCR_LISTEN` | no | Default `[::]:50051`. |
+| `SIRD_OCR_MAX_WORKERS` | no | Default `4`. |
+| `SIRD_OCR_POLICY_ID` | no | The only accepted `input_policy_id`, for example `snils-card-input`. Empty accepts any. |
+| `SIRD_OCR_TLS_CERT`, `SIRD_OCR_TLS_KEY`, `SIRD_OCR_TLS_CLIENT_CA` | no | All three enable mTLS. None serves plaintext gRPC. |
+
+The server stops at start when a required variable is missing.
+
+### Docker
+
+This example uses the RustFS object store from `integration/start.sh` on `127.0.0.1:9000`. Use the same key in `CAPABILITY_KEYS` and in the Process `CAPABILITY_KEY`.
+
+```bash
+docker run --rm --read-only --tmpfs /tmp \
+  --add-host=host.docker.internal:host-gateway \
+  -p 127.0.0.1:50051:50051 \
+  -e CAPABILITY_KEYS="v1-k1:<64 hex, same as Process CAPABILITY_KEY>" \
+  -e CAPABILITY_ISSUER=process-service \
+  -e CAPABILITY_AUDIENCE=ocr.service \
+  -e S3_ENDPOINT=http://host.docker.internal:9000 \
+  -e S3_BUCKET=<bucket of sird-task-service> \
+  -e S3_ACCESS_KEY=<RUSTFS_ACCESS_KEY> \
+  -e S3_SECRET_KEY=<RUSTFS_SECRET_KEY> \
+  ghcr.io/hsebabyhares/sird-ocr:main
+```
+
+To build the image from the checkout, run `docker build -t sird-ocr:local .` and use `sird-ocr:local`. The server has no `grpc.health.v1` service. An empty `Recognize` request returns `INVALID_ARGUMENT` when the server is up.
+
+### Kubernetes
+
+The chart [`deploy/helm/sird-ocr/`](deploy/helm/sird-ocr/README.md) gives the install commands, the secrets, and the matching `sird-process-service` settings (`OCR_TARGET`, `OCR_PLAINTEXT`, `CAPABILITY_*`). The short form:
+
+```bash
+helm install sird-ocr deploy/helm/sird-ocr \
+  --set image.tag=main \
+  --set imagePullSecrets[0].name=ghcr-pull \
+  --set existingSecret=sird-ocr \
+  --set storage.endpoint=http://<s3-host>:9000 \
+  --set storage.bucket=<bucket of sird-task-service>
+```
+
+Process must sign the `object_key` claim (sird-process-service branch `fix/task-contract`). Without it, the OCR service refuses every capability.
 
 ## Architecture
 
@@ -100,7 +168,8 @@ For the detailed stage model, data flow, and boundaries, see [`docs/prototype/ar
 | `experiment/` | Deterministic experiment runner and evaluator |
 | `verification/` | Architecture, contract, metric, recognition, and acceptance oracles |
 | `docs/prototype/` | Product, requirements, architecture, operations, security, and verification documentation |
-| `deploy/`, `container/`, `compose*.yml` | Deployment and local container profiles |
+| `Dockerfile`, `deploy/helm/sird-ocr/` | gRPC OCR service image and Helm chart |
+| `deploy/`, `container/`, `compose*.yml` | Other deployment and local container profiles |
 | `tools/`, `.github/`, `.omp/`, `.claude/` | Repository delivery, security, quality, architecture, container, and automation controls |
 
 ## Development
@@ -238,7 +307,7 @@ The root runtime is transport-neutral and does not persist task state. Local int
 
 The current evidence records these open gaps:
 
-- production gRPC client and deployment;
+- team agreement on the capability issuer, audience, key id, and policy ids that `sird-process-service` uses;
 - production certificate issuance and rotation for mTLS, RabbitMQ broker authorization, and per-service identity mapping;
 - OS-level decoder isolation;
 - accepted corpus, numeric quality thresholds, retention cleanup, and OCR/task latency evidence.

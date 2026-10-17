@@ -10,3 +10,4 @@ integration/.env
 integration/spire/runtime/*
 generated-gpt-images/
 artifacts/corpus/gpt-images/
+integration/certs/

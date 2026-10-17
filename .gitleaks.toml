@@ -1,0 +1,17 @@
+# Default rules plus narrow false-positive allowlists. A value must be the
+# exact hex pin shape to pass, so a real token in these fields still alerts.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Hex revision and sha256 pins for the GLiNER tokenizer"
+regexTarget = "line"
+regexes = [
+  '''^\s*"tokenizer_(revision|[a-z]+_sha256)": "[0-9a-f]{40,64}",?$''',
+  '''\b_TOKENIZER_REVISION = "[0-9a-f]{40}"''',
+]
+
+[[allowlists]]
+description = "aio-pika keyword argument, not a credential"
+regexTarget = "line"
+regexes = ['''\brouting_key=routing_key\b''']

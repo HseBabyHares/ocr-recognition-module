@@ -42,12 +42,11 @@ def request_json(url):
 
 
 def download(url, dst):
+    # Release assets are public; urllib would forward a token to the
+    # redirect host.
     req = urllib.request.Request(
         url, headers={"User-Agent": "omp-fadd-security-installer/1"}
     )
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    if token and "github" in url:
-        req.add_header("Authorization", f"Bearer {token}")
     with urllib.request.urlopen(req, timeout=180) as r, dst.open("wb") as f:
         shutil.copyfileobj(r, f)
 

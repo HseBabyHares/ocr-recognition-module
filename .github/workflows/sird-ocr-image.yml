@@ -1,0 +1,65 @@
+name: sird-ocr image
+
+on:
+  push:
+    paths:
+      - Dockerfile
+      - pyproject.toml
+      - uv.lock
+      - src/**
+      - .github/workflows/sird-ocr-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sird-ocr-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: build and push to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/hsebabyhares/sird-ocr
+      REF_NAME: ${{ github.ref_name }}
+      SHA: ${{ github.sha }}
+      SOURCE: ${{ github.server_url }}/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: {persist-credentials: false}
+      - name: Log in to GHCR
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: printf '%s' "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+      - name: Build
+        run: |
+          BRANCH_TAG=$(printf '%s' "$REF_NAME" | tr -c 'A-Za-z0-9_.-' '-' | cut -c1-120)
+          echo "BRANCH_TAG=$BRANCH_TAG" >> "$GITHUB_ENV"
+          docker build \
+            --label "org.opencontainers.image.source=$SOURCE" \
+            --label "org.opencontainers.image.revision=$SHA" \
+            -t "$IMAGE:sha-$SHA" -t "$IMAGE:$BRANCH_TAG" .
+      - name: Smoke - the gRPC port listens
+        run: |
+          docker run -d --name smoke --read-only --tmpfs /tmp \
+            -e CAPABILITY_KEYS="ci:$(openssl rand -hex 32)" \
+            -e CAPABILITY_ISSUER=process-service -e CAPABILITY_AUDIENCE=ocr.service \
+            -e S3_ENDPOINT=http://127.0.0.1:9 -e S3_BUCKET=b -e S3_ACCESS_KEY=x \
+            -e S3_SECRET_KEY=y -e S3_REGION=us-east-1 "$IMAGE:sha-$SHA"
+          for _ in $(seq 1 30); do
+            docker exec smoke python -c "import socket; socket.create_connection(('127.0.0.1', 50051), 1)" && exit 0
+            sleep 1
+          done
+          docker logs smoke
+          exit 1
+      - name: Push
+        run: |
+          docker push "$IMAGE:sha-$SHA"
+          docker push "$IMAGE:$BRANCH_TAG"
+          docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:sha-$SHA"

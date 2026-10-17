@@ -39,7 +39,8 @@ def request_json(url, anonymous=False):
     if not anonymous:
         token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:
-        req.add_header("Authorization", f"Bearer {token}")
+        # Unredirected: the token must not follow a redirect to another host.
+        req.add_unredirected_header("Authorization", f"Bearer {token}")
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)

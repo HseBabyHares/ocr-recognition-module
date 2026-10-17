@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import io
 import json
 import os
 import pathlib
 import subprocess
 import sys
 import tempfile
+import urllib.error
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 
@@ -104,5 +106,26 @@ with tempfile.TemporaryDirectory() as td:
         text=True,
     )
     assert result.returncode == 0, (result.stdout, result.stderr)
+
+# request_json retries a 403 without the token (owner IP allow list).
+sys.path.insert(0, str(ROOT / "tools/security"))
+import install  # noqa: E402
+
+sent = []
+
+
+def fake_urlopen(req, timeout):
+    sent.append(req.get_header("Authorization"))
+    if req.get_header("Authorization"):
+        raise urllib.error.HTTPError(
+            req.full_url, 403, "Forbidden", {}, io.BytesIO(b"{}")
+        )
+    return io.BytesIO(b'{"ok": 1}')
+
+
+os.environ["GITHUB_TOKEN"] = "self-test"
+install.urllib.request.urlopen = fake_urlopen
+assert install.request_json("https://api.github.com/x") == {"ok": 1}
+assert sent == ["Bearer self-test", None], sent
 
 print('{"check":"security-harness","status":"pass"}')

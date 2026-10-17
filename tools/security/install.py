@@ -27,7 +27,7 @@ def load():
     return json.loads(LOCK.read_text())["tools"]
 
 
-def request_json(url):
+def request_json(url, anonymous=False):
     req = urllib.request.Request(
         url,
         headers={
@@ -35,11 +35,20 @@ def request_json(url):
             "User-Agent": "omp-fadd-security-installer/1",
         },
     )
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    token = None
+    if not anonymous:
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if token:
         req.add_header("Authorization", f"Bearer {token}")
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        # An owner IP allow list (aquasecurity) rejects tokens from runner
+        # IPs; the public release reads without one.
+        if not token or e.code != 403:
+            raise
+        return request_json(url, anonymous=True)
 
 
 def download(url, dst):

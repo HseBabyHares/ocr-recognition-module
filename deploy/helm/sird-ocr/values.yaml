@@ -1,10 +1,15 @@
 replicaCount: 1
 
+# Published by .github/workflows/sird-ocr-image.yml as sha-<commit> and
+# <branch>. Prefer digest for production.
 image:
-  repository: sird-ocr
-  tag: local
+  repository: ghcr.io/hsebabyhares/sird-ocr
+  tag: ""
   digest: ""
   pullPolicy: IfNotPresent
+
+# The GHCR package is private: a docker-registry secret for ghcr.io.
+imagePullSecrets: []
 
 nameOverride: ""
 fullnameOverride: ""

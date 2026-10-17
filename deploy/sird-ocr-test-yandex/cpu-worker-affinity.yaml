@@ -1,17 +1,13 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sird-ocr-test
-  namespace: sird-ocr-test
-spec:
-  template:
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: NotIn
-                    values:
-                      - kserve-wrk-gpu-1
+# JSON 6902 patch: a partial Deployment here would scan as a pod without a
+# security context.
+- op: add
+  path: /spec/template/spec/affinity
+  value:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                  - kserve-wrk-gpu-1

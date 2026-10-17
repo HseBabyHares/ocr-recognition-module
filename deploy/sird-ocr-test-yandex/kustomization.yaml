@@ -6,6 +6,9 @@ resources:
 
 patches:
   - path: cpu-worker-affinity.yaml
+    target:
+      kind: Deployment
+      name: sird-ocr-test
 
 images:
   - name: sird-ocr-test

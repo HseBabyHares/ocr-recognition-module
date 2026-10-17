@@ -1,0 +1,5 @@
+# Loopback RabbitMQ dev TLS keys (365 days) committed in 7744dfe. The files
+# are untracked now and integration/start.sh generates new ones.
+7744dfe9ab1c674fa637465dff0eccef140e6ba6:integration/certs/rabbitmq/ca.key:private-key:1
+7744dfe9ab1c674fa637465dff0eccef140e6ba6:integration/certs/rabbitmq/client.key:private-key:1
+7744dfe9ab1c674fa637465dff0eccef140e6ba6:integration/certs/rabbitmq/server.key:private-key:1

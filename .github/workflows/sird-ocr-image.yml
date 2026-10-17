@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write # push the image to ghcr.io/hsebabyhares/sird-ocr
     env:
       IMAGE: ghcr.io/hsebabyhares/sird-ocr
       REF_NAME: ${{ github.ref_name }}

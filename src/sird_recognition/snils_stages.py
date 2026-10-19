@@ -139,7 +139,13 @@ class SnilsExecuteProfile:
                 ),
             },
             evidence_refs=(),
-            diagnostics=recognized.diagnostics,
+            # The contract has no severity, so a pass already sent as a
+            # field validation must not also appear as a diagnostic.
+            diagnostics=tuple(
+                code
+                for code in recognized.diagnostics
+                if code != "snils_checksum_valid"
+            ),
             complete=True,
             execution_metadata={
                 "variant_count": recognized.variant_count,

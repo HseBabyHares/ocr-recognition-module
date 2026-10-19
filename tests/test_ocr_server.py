@@ -32,7 +32,7 @@ _VERIFIED = SnilsRecognitionResult(
     "11223344595",
     "Синтетов Тест Тестович",
     "2000-01-02",
-    (),
+    ("snils_checksum_valid",),
     1,
     1,
 )
@@ -91,6 +91,7 @@ class TestOcrServer:
         assert snils.validations[0].status == (
             recognize_pb2.VALIDATION_STATUS_VALID
         )
+        assert not response.diagnostics
 
     def test_refusal_is_partial_without_values(self, store: str) -> None:
         response = _call(store, _REFUSED, fixtures.issue())

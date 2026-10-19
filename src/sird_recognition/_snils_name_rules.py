@@ -5,19 +5,13 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from sird_recognition._snils_label_loader import load_ocr_labels
-from sird_recognition._snils_labels import _Patterns, has_label
+from sird_recognition._snils_labels import (
+    _Patterns,
+    has_label,
+    word_tokens,
+)
 
-
-def _word_tokens(line: str) -> list[str]:
-    return [
-        match.group()
-        for match in _Patterns.word.finditer(line)
-        if (
-            _Patterns.name_token_min
-            <= len(match.group())
-            <= _Patterns.name_token_max
-        )
-    ]
+_NAME_PARTS = ("фамилия", "имя", "отчество")
 
 
 def _last_name_marker(tokens: list[str], name_label_tokens: frozenset[str]):
@@ -40,7 +34,7 @@ def _following_name_tokens(
     ]:
         if has_label(following_line, field_labels):
             break
-        following_tokens = _word_tokens(following_line)
+        following_tokens = word_tokens(following_line)
         if len(following_tokens) != _Patterns.following_token_count:
             break
         name_tokens.extend(following_tokens)
@@ -91,12 +85,12 @@ def _line_name_values(
     lines: list[str],
     name_label_tokens: frozenset[str],
     field_labels: tuple[str, ...],
-) -> set[str]:
-    name_values: set[str] = set()
+) -> set[tuple[bool, str]]:
+    name_values = {(True, name) for name in _field_labelled_names(lines)}
     for line_index, line in enumerate(lines):
         if has_label(line, field_labels):
             continue
-        tokens = _word_tokens(line)
+        tokens = word_tokens(line)
         labelled_name = _labelled_name(
             lines,
             line_index,
@@ -106,10 +100,28 @@ def _line_name_values(
         )
         if labelled_name is not None:
             if len(labelled_name) == _Patterns.name_token_count:
-                name_values.add(" ".join(labelled_name))
+                name_values.add((True, " ".join(labelled_name)))
             continue
-        name_values.update(_unlabelled_values(tokens, name_label_tokens))
+        name_values.update(
+            (False, name_value)
+            for name_value in _unlabelled_values(tokens, name_label_tokens)
+        )
     return name_values
+
+
+def _field_labelled_names(lines: list[str]) -> set[str]:
+    """Join one-word values of separate surname, name and patronymic rows."""
+    rows = [tokens for tokens in map(word_tokens, lines) if tokens]
+    found = [
+        [tokens[1:] for tokens in rows if tokens[0].casefold() == part]
+        for part in _NAME_PARTS
+    ]
+    shapes = [[len(tail) for tail in part_rows] for part_rows in found]
+    # shortcut: an empty patronymic row is refused, not read as a
+    # two-word name; accept it when such documents reach the service.
+    if any(shape != [1] for shape in shapes):
+        return set()
+    return {" ".join(part_rows[0][0] for part_rows in found)}
 
 
 def name_candidates(texts: Iterable[str]) -> set[str]:
@@ -118,10 +130,14 @@ def name_candidates(texts: Iterable[str]) -> set[str]:
     if labels is None:
         return set()
     field_labels = labels.birth_labels + labels.registration_labels
-    return {
+    found = {
         name_value
         for text in texts
         for name_value in _line_name_values(
             text.splitlines(), labels.name_label_tokens, field_labels
         )
+    }
+    # A labelled name outranks word runs from headers and stamps.
+    return {name for is_labelled, name in found if is_labelled} or {
+        name for _, name in found
     }

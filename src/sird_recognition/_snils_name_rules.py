@@ -116,16 +116,19 @@ def _field_labelled_names(lines: list[str]) -> set[str]:
         [tokens[1:] for tokens in rows if tokens[0].casefold() == part]
         for part in _NAME_PARTS
     ]
-    shapes = [[len(tail) for tail in part_rows] for part_rows in found]
-    # shortcut: an empty patronymic row is refused, not read as a
-    # two-word name; accept it when such documents reach the service.
-    if any(shape != [1] for shape in shapes):
+    *named, patronymic = [
+        [len(tail) for tail in part_rows] for part_rows in found
+    ]
+    # A person without a patronymic leaves that row empty.
+    if patronymic not in ([0], [1]):
         return set()
-    return {" ".join(part_rows[0][0] for part_rows in found)}
+    if any(shape != [1] for shape in named):
+        return set()
+    return {" ".join(word for part_rows in found for word in part_rows[0])}
 
 
 def name_candidates(texts: Iterable[str]) -> set[str]:
-    """Extract three-token names from labelled or unlabelled OCR lines."""
+    """Extract full names from labelled or unlabelled OCR lines."""
     labels = load_ocr_labels()
     if labels is None:
         return set()

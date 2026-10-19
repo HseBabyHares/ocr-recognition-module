@@ -25,3 +25,13 @@ def test_separate_name_rows_resolved() -> None:
     )
 
     assert name_candidates([text]) == {"Сидоров Петр Петрович"}
+
+
+def test_empty_patronymic_row_gives_two_word_name() -> None:
+    text = (
+        "Фамилия Сидоров\n"
+        "Имя Петр\n"
+        "Отчество (при наличии)\n"
+        "Дата рождения 23.01.2004"
+    )
+    assert name_candidates([text]) == {"Сидоров Петр"}

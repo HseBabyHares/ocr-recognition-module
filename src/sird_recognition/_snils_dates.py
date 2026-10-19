@@ -6,9 +6,7 @@ from datetime import date
 
 from sird_recognition._snils_date_matches import (
     numeric_match_date,
-    numeric_prefix,
     text_match_date,
-    text_prefix,
 )
 from sird_recognition._snils_labels import _Patterns
 
@@ -44,12 +42,3 @@ def text_date_values(text: str, months: dict[str, int]) -> set[str]:
 def date_values(text: str, months: dict[str, int]) -> set[str]:
     """Extract both supported date spellings."""
     return numeric_date_values(text) | text_date_values(text, months)
-
-
-def remove_date_prefix(raw_text: str, months: dict[str, int]) -> str:
-    """Remove one valid date prefix from a place value."""
-    numeric_date_prefix = numeric_prefix(raw_text)
-    if numeric_date_prefix is not None:
-        return numeric_date_prefix
-    text_date_prefix = text_prefix(raw_text, months)
-    return raw_text if text_date_prefix is None else text_date_prefix

@@ -17,6 +17,11 @@ class Patterns:
         r"(?<!\d)(\d{1,2})\s+([^\W\d_]+)\s+(\d{4})(?!\d)",
         re.UNICODE,
     )
+    year = re.compile(r"(?<!\d)\d{4}(?!\d)")
+    place = re.compile(
+        r"(?=.*[а-яё]{2})[а-яё]+(?:[-.,\s]+[а-яё]+)*\.?", re.IGNORECASE
+    )
+    sex_label = "пол"
     name_token_min = 2
     name_token_max = 30
     name_token_count = 3

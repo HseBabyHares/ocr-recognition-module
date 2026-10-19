@@ -4,9 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from sird_recognition._snils_dates import date_values, remove_date_prefix
+from sird_recognition._snils_dates import date_values
 from sird_recognition._snils_label_loader import load_ocr_labels
-from sird_recognition._snils_labels import OcrLabels, has_label
+from sird_recognition._snils_labels import (
+    OcrLabels,
+    _Patterns,
+    has_label,
+    normalized_line,
+)
 from sird_recognition._snils_text import birth_place_labels, label_attachment
 
 
@@ -48,17 +53,45 @@ def birth_date_candidates(texts: Iterable[str]) -> set[str]:
     }
 
 
+def _same_line_place(attached: str) -> str:
+    # Text up to the year is the date, also when OCR damaged the month.
+    date_end = max(
+        (year.end() for year in _Patterns.year.finditer(attached)), default=0
+    )
+    place_text = attached[date_end:].strip()
+    # After the date a comma starts the place; without it the first word
+    # is "года" or its OCR damage, such as "Ода".
+    if date_end and not place_text.startswith(","):
+        place_text = "".join(place_text.split(maxsplit=1)[1:])
+    return place_text.strip(" \t:;,.-")
+
+
 def _place_value(
-    line: str, place_labels: tuple[str, ...], months: dict[str, int]
-) -> str | None:
-    attached = label_attachment(line, place_labels)
+    lines: list[str],
+    line_index: int,
+    place_labels: tuple[str, ...],
+    labels: OcrLabels,
+) -> set[str]:
+    attached = label_attachment(lines[line_index], place_labels)
     if attached is None:
-        return None
-    stripped = attached.lstrip(" \t:;,.-")
-    without_date = remove_date_prefix(stripped, months).strip(" \t:;,.-")
-    if not without_date:
-        return None
-    return " ".join(without_date.split())
+        return set()
+    place_texts = [_same_line_place(attached)]
+    # shortcut: only one following line is read, so a two-line place
+    # loses its region line; read more lines when such forms arrive.
+    for following_line in lines[line_index + 1 : line_index + 2]:
+        if not has_label(
+            following_line, labels.birth_labels + labels.registration_labels
+        ) and normalized_line(following_line).split()[:1] != [
+            _Patterns.sex_label
+        ]:
+            place_texts.append(following_line.strip())
+    # OCR noise fails the place shape and is dropped, not counted.
+    shaped = [
+        " ".join(place_text.split())
+        for place_text in place_texts
+        if _Patterns.place.fullmatch(place_text)
+    ]
+    return set(shaped[:1])
 
 
 def _place_values(texts: Iterable[str], labels: OcrLabels) -> set[str]:
@@ -67,12 +100,11 @@ def _place_values(texts: Iterable[str], labels: OcrLabels) -> set[str]:
         return set()
     place_values: set[str] = set()
     for text in texts:
-        for line in text.splitlines():
-            place_value = _place_value(
-                line, place_labels, labels.months_genitive
+        lines = text.splitlines()
+        for line_index, _ in enumerate(lines):
+            place_values |= _place_value(
+                lines, line_index, place_labels, labels
             )
-            if place_value is not None:
-                place_values.add(place_value)
     return place_values
 
 

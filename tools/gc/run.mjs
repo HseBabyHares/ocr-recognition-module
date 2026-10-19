@@ -234,6 +234,7 @@ fs.writeFileSync(
   path.join(out, "inventory.json"),
   JSON.stringify(report, null, 2) + "\n",
 );
-console.log(JSON.stringify(report, null, 2));
+// The full report is in inventory.json; stdout feeds the harness log.
+console.log(JSON.stringify({ status: report.status, counts: report.counts }));
 if (a.failOn === "any" && normalized.length) process.exit(1);
 if (a.failOn === "new" && fresh.length) process.exit(1);

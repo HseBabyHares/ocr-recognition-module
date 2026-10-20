@@ -5,10 +5,13 @@
 # ///
 """Render synthetic SNILS documents with exact ground truth.
 
-Three layouts: the green insurance card and two ADI-REG notices. Every value
-is fictional, every SNILS has a valid checksum, and every image carries a
-small SYNTHETIC TEST mark. Run: uv run tools/corpus/render_snils_forms.py
---out DIR [--count N] [--seed S] [--clean]
+Three layouts: the green insurance card, the ADI-REG notice of the Pension
+Fund (2019) and the notice of the Social Fund (2023). Every value is
+fictional, every SNILS has a valid checksum, and every image carries a small
+SYNTHETIC TEST mark. Negative layouts (--negatives N) add pages that must be
+rejected: an unsupported page, a notice with no issuer, and a card with a bad
+SNILS checksum. Run: uv run tools/corpus/render_snils_forms.py --out DIR
+[--count N] [--negatives N] [--seed S] [--clean]
 """
 
 from __future__ import annotations
@@ -19,7 +22,7 @@ import math
 import os
 import random
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -28,7 +31,14 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 sys.path.insert(0, str(Path(__file__).parent))
 from generate_gpt_test_images import WATERMARK, snils_checksum  # noqa: E402
 
-LAYOUTS = ("snils_card", "adi_reg_lines", "adi_reg_bold")
+LAYOUTS = ("snils_card", "adi_reg_2019", "adi_reg_2023")
+# Negative layout -> (expected form decision, a verified SNILS is allowed).
+NEGATIVES = {
+    "unsupported_page": ("form_unsupported", False),
+    "notice_no_issuer": ("form_ambiguous", False),
+    "card_bad_checksum": ("snils_card", False),
+}
+ISSUERS = {"adi_reg_2019": "ПФР", "adi_reg_2023": "СФР"}
 MONTHS = (
     "января",
     "февраля",
@@ -318,7 +328,11 @@ def _notice_rows(person: Person, bold: bool) -> list[tuple[list[str], str]]:
 
 
 def render_notice(
-    person: Person, rng: random.Random, fonts: Fonts, bold: bool
+    person: Person,
+    rng: random.Random,
+    fonts: Fonts,
+    bold: bool,
+    issuer: str | None,
 ) -> Image.Image:
     width, height = 1200, 1260
     image = Image.new("RGB", (width, height), (255, 255, 255))
@@ -369,9 +383,13 @@ def render_notice(
     draw.text(
         (70, y), "Наименование должности работника", font=label_font, fill=INK
     )
-    draw.text(
-        (70, y + 38), "территориального органа ПФР", font=label_font, fill=INK
-    )
+    if issuer:
+        draw.text(
+            (70, y + 38),
+            f"территориального органа {issuer}",
+            font=label_font,
+            fill=INK,
+        )
     y += 130
     officer = (
         f"{rng.choice('АВЕКМНОС')}.{rng.choice('АВЕКМНОС')}. "
@@ -424,42 +442,90 @@ def degrade(image: Image.Image, rng: random.Random) -> Image.Image:
     return Image.blend(image, noise, rng.uniform(0.03, 0.08))
 
 
+def render_unsupported(
+    person: Person, rng: random.Random, fonts: Fonts
+) -> Image.Image:
+    """A certificate page with no SNILS form marker and no SNILS number."""
+    width, height = 1200, 900
+    image = Image.new("RGB", (width, height), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    text = fonts("serif", 32)
+    centered(draw, width, 80, "СПРАВКА", fonts("serif_bold", 48))
+    for index, line in enumerate(
+        (
+            f"Выдана: {person.full_name}",
+            f"Дата рождения: {person.birth_date.strftime('%d.%m.%Y')}",
+            "в том, что указанное лицо является студентом",
+            f"очной формы обучения с {rng.randrange(2018, 2025)} года.",
+            "Справка выдана для предъявления по месту требования.",
+        )
+    ):
+        draw.text((90, 220 + 60 * index), line, font=text, fill=INK)
+    watermark(draw, (width, height), fonts)
+    return image
+
+
+def bad_checksum(person: Person) -> Person:
+    """The same person with a SNILS whose control number is wrong."""
+    control = (int(person.snils[9:]) + 1) % 100
+    return replace(person, snils=f"{person.snils[:9]}{control:02d}")
+
+
 def render(
     layout: str, person: Person, rng: random.Random, fonts: Fonts
 ) -> Image.Image:
-    if layout == "snils_card":
+    if layout in {"snils_card", "card_bad_checksum"}:
         return render_card(person, rng, fonts)
-    return render_notice(person, rng, fonts, bold=layout == "adi_reg_bold")
+    if layout == "unsupported_page":
+        return render_unsupported(person, rng, fonts)
+    bold = layout == "adi_reg_2023"
+    return render_notice(person, rng, fonts, bold, ISSUERS.get(layout))
 
 
-def generate(out: Path, count: int, seed: int, clean: bool) -> list[dict]:
+def _plan(count: int, negatives: int) -> list[tuple[str, int]]:
+    # Positives come first, so --negatives never changes the positive files.
+    return [
+        (layout, index) for layout in LAYOUTS for index in range(count)
+    ] + [(layout, index) for layout in NEGATIVES for index in range(negatives)]
+
+
+def _expected(layout: str) -> dict[str, object]:
+    form, verified = NEGATIVES.get(layout, (layout, True))
+    return {"expected_form": form, "expected_verified": verified}
+
+
+def generate(
+    out: Path, count: int, seed: int, clean: bool, negatives: int = 0
+) -> list[dict]:
     rng = random.Random(seed)
     fonts = Fonts()
     out.mkdir(parents=True, exist_ok=True)
     rows = []
-    for layout in LAYOUTS:
-        for index in range(count):
-            person = make_person(rng)
-            image = render(layout, person, rng, fonts)
-            suffix = "png" if clean else "jpg"
-            file_name = f"{layout}-{index:03d}.{suffix}"
-            if clean:
-                image.save(out / file_name)
-            else:
-                degrade(image, rng).save(
-                    out / file_name, quality=rng.randrange(60, 95)
-                )
-            truth = asdict(person)
-            truth["birth_date"] = person.birth_date.isoformat()
-            truth["registration_date"] = person.registration_date.isoformat()
-            rows.append(
-                {
-                    "file": file_name,
-                    "layout": layout,
-                    "full_name": person.full_name,
-                    **truth,
-                }
+    for layout, index in _plan(count, negatives):
+        person = make_person(rng)
+        if layout == "card_bad_checksum":
+            person = bad_checksum(person)
+        image = render(layout, person, rng, fonts)
+        suffix = "png" if clean else "jpg"
+        file_name = f"{layout}-{index:03d}.{suffix}"
+        if clean:
+            image.save(out / file_name)
+        else:
+            degrade(image, rng).save(
+                out / file_name, quality=rng.randrange(60, 95)
             )
+        truth = asdict(person)
+        truth["birth_date"] = person.birth_date.isoformat()
+        truth["registration_date"] = person.registration_date.isoformat()
+        rows.append(
+            {
+                "file": file_name,
+                "layout": layout,
+                **_expected(layout),
+                "full_name": person.full_name,
+                **truth,
+            }
+        )
     with (out / "manifest.jsonl").open("w", encoding="utf-8") as manifest:
         for row in rows:
             manifest.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -474,6 +540,12 @@ def main() -> int:
     parser.add_argument(
         "--count", type=int, default=5, help="documents per layout"
     )
+    parser.add_argument(
+        "--negatives",
+        type=int,
+        default=0,
+        help="documents per negative layout",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--clean",
@@ -481,7 +553,9 @@ def main() -> int:
         help="write lossless PNG with no photo noise",
     )
     args = parser.parse_args()
-    rows = generate(args.out, args.count, args.seed, args.clean)
+    rows = generate(
+        args.out, args.count, args.seed, args.clean, args.negatives
+    )
     print(f"wrote {len(rows)} documents to {args.out}")
     return 0
 

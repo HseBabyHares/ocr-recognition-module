@@ -16,12 +16,25 @@ spec.loader.exec_module(module)
 
 
 def test_renders_every_layout_with_valid_truth(tmp_path):
-    module.generate(tmp_path, count=1, seed=3, clean=False)
+    module.generate(tmp_path, count=1, seed=3, clean=False, negatives=1)
     rows = [
         json.loads(line)
         for line in (tmp_path / "manifest.jsonl").read_text().splitlines()
     ]
-    assert sorted(row["layout"] for row in rows) == sorted(module.LAYOUTS)
+    assert sorted(row["layout"] for row in rows) == sorted(
+        (*module.LAYOUTS, *module.NEGATIVES)
+    )
     for row in rows:
         assert (tmp_path / row["file"]).stat().st_size > 0
-        assert row["snils"][-2:] == module.snils_checksum(row["snils"][:-2])
+        valid = row["snils"][-2:] == module.snils_checksum(row["snils"][:-2])
+        assert valid == (row["layout"] != "card_bad_checksum")
+        assert row["expected_verified"] == (row["layout"] in module.LAYOUTS)
+
+
+def test_negatives_do_not_change_positive_files(tmp_path):
+    module.generate(tmp_path / "a", count=1, seed=3, clean=True)
+    module.generate(tmp_path / "b", count=1, seed=3, clean=True, negatives=1)
+    for layout in module.LAYOUTS:
+        name = f"{layout}-000.png"
+        first = (tmp_path / "a" / name).read_bytes()
+        assert first == (tmp_path / "b" / name).read_bytes()

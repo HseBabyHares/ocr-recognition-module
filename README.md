@@ -310,7 +310,9 @@ The current evidence records these open gaps:
 - team agreement on the capability issuer, audience, key id, and policy ids that `sird-process-service` uses;
 - production certificate issuance and rotation for mTLS, RabbitMQ broker authorization, and per-service identity mapping;
 - OS-level decoder isolation;
-- accepted corpus, numeric quality thresholds, retention cleanup, and OCR/task latency evidence.
+- a real labeled corpus, retention cleanup, and production task queue latency evidence.
+
+The frozen synthetic OCR benchmark for SRS PR-2 and PR-4 is in [`tools/benchmark/pr2_benchmark.py`](tools/benchmark/pr2_benchmark.py). Its corpus lock and thresholds are in [`tools/benchmark/pr2-corpus.lock.json`](tools/benchmark/pr2-corpus.lock.json). The last report is [`docs/acceptance/pr2-benchmark-report.json`](docs/acceptance/pr2-benchmark-report.json). Run `uv run python tools/benchmark/pr2_benchmark.py run`, then `uv run python tools/benchmark/pr2_benchmark.py score`.
 
 Security and architecture material is indexed from [`docs/prototype/documentation-overview.md`](docs/prototype/documentation-overview.md) and [`handoff/sird-ocr-integration.md`](handoff/sird-ocr-integration.md).
 

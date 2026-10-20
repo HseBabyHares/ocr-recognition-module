@@ -195,7 +195,16 @@ def score_command() -> int:
         for acquisition in ACQUISITIONS
         for row in _jsonl(WORK / acquisition / "manifest.jsonl")
     ]
-    report = score(truth, _jsonl(WORK / "predictions.jsonl"))
+    predictions = _jsonl(WORK / "predictions.jsonl")
+    report = score(truth, predictions)
+    # Latency varies per run; equal hashes prove reproducible predictions.
+    stable = [
+        {key: value for key, value in row.items() if key != "latency_seconds"}
+        for row in predictions
+    ]
+    report["prediction_sha256"] = hashlib.sha256(
+        json.dumps(stable, ensure_ascii=False, sort_keys=True).encode()
+    ).hexdigest()
     environment = json.loads((WORK / "environment.json").read_text())
     peak_bytes = max(environment.pop("peak_rss_kib").values()) * 1024
     report |= {

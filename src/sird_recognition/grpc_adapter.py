@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import importlib
 import sys
+import time
 from typing import Any, Protocol
 
 import grpc
 
-from sird_recognition import _runtime_models
+from sird_recognition import _runtime_models, telemetry
 from sird_recognition.contracts.stages import StageContext
 
 from . import (  # noqa: WPS300
@@ -122,8 +123,10 @@ class OcrServiceServicer(_recognize_pb2_grpc.OcrServiceServicer):
         context_data: StageContext,
         context: grpc.ServicerContext,
     ) -> _runtime_models.RecognitionResponse:
+        started = time.perf_counter()
+        response = None
         try:
-            return self._runtime.recognize(request, context_data)
+            response = self._runtime.recognize(request, context_data)
         except grpc.RpcError:
             raise
         except Exception as error:
@@ -131,3 +134,9 @@ class OcrServiceServicer(_recognize_pb2_grpc.OcrServiceServicer):
             raise AssertionError(
                 "context.abort returned unexpectedly"
             ) from error
+        else:
+            return response
+        finally:
+            telemetry.record_recognition(
+                time.perf_counter() - started, response
+            )

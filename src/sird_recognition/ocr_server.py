@@ -10,6 +10,7 @@ Environment:
   CAPABILITY_AUDIENCE         expected ``audience`` claim
   S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_REGION
   SIRD_TESSERACT_SHA256, SIRD_TESSDATA_SHA256  optional checksum pins
+  OTEL_EXPORTER_OTLP_[METRICS_]ENDPOINT  optional; enables OTLP/HTTP metrics
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import grpc
 from sird_recognition._ocr_composition import build_runtime
 from sird_recognition.grpc_adapter import register_ocr_service
 from sird_recognition.runtime import RecognizerRuntime
+from sird_recognition.telemetry import configure_metrics
 
 _TLS_NAMES = ("CERT", "KEY", "CLIENT_CA")
 
@@ -40,6 +42,7 @@ def serve(
 
 def main() -> None:
     """Serve until the process gets a termination signal."""
+    configure_metrics()
     server, _ = serve(
         build_runtime(),
         os.environ.get("SIRD_OCR_LISTEN", "[::]:50051"),

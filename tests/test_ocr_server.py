@@ -142,3 +142,21 @@ class TestOcrServer:
         assert response.subject_diagnostic == (
             recognize_pb2.SUBJECT_DIAGNOSTIC_FORM_UNSUPPORTED
         )
+
+    def test_latency_has_status_attributes_only(
+        self, store: str, metric_points: Any
+    ) -> None:
+        _call(store, _VERIFIED, fixtures.issue())
+
+        exported = metric_points.get_metrics_data()
+        scope = exported.resource_metrics[0].scope_metrics[0]
+        points = scope.metrics[0].data.data_points
+        assert [(point.count, point.attributes) for point in points] == [
+            (
+                1,
+                {
+                    "sird.ocr.operation_status": "ok",
+                    "sird.ocr.task_outcome": "completed",
+                },
+            )
+        ]

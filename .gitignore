@@ -17,3 +17,4 @@ artifacts/gc/
 artifacts/logs/
 artifacts/openspec/result.json
 node_modules/
+artifacts/benchmark/

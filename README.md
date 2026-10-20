@@ -99,6 +99,7 @@ docker login ghcr.io -u <github-user>
 | `SIRD_OCR_MAX_WORKERS` | no | Default `4`. |
 | `SIRD_OCR_POLICY_ID` | no | The only accepted `input_policy_id`, for example `snils-card-input`. Empty accepts any. |
 | `SIRD_OCR_TLS_CERT`, `SIRD_OCR_TLS_KEY`, `SIRD_OCR_TLS_CLIENT_CA` | no | All three enable mTLS. None serves plaintext gRPC. |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` | no | Enables OTLP/HTTP export of the `sird.ocr.recognition.duration` histogram (seconds), for example `http://otel-collector:4318`. Its only attributes are `sird.ocr.operation_status` and `sird.ocr.task_outcome`. |
 
 The server stops at start when a required variable is missing.
 

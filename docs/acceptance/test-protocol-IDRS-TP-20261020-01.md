@@ -13,7 +13,7 @@ The protocol contains no personal data. Every document in the runs is synthetic.
 | Reviewer | TBD (plan §13: a person other than the executor) |
 | OCR baseline | `sird-recognition` commit `7fd8f0a` |
 | Demo baseline | `sird-demo-spa` commit `759b8e4` |
-| Management UI baseline | `sird-frontend` commit `5cc637a (local on main, not pushed yet)` |
+| Management UI baseline | `sird-frontend` commit `5cc637a` |
 | OCR engine | Tesseract 5.5.3; checksums in `artifacts/benchmark/pr2/environment.json` |
 | Host | One shared developer workstation, 20 CPU threads; not the measured-test hardware of D-04 |
 

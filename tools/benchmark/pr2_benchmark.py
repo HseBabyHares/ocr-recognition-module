@@ -1,8 +1,10 @@
 """Frozen synthetic benchmark for SRS PR-2 accuracy and PR-4 latency.
 
 The corpus is fixed by seeds and by a committed SHA-256 lock. The run uses
-the production reader composition (Tesseract, no GLiNER). The scorer reads
-only the saved predictions and the ground truth, and it writes aggregates.
+the production stage order: read the page once, classify the form, and run
+the field profile only for a supported form (Tesseract, no GLiNER). Negative
+pages must never give a verified result. The scorer reads only the saved
+predictions and the ground truth, and it writes aggregates.
 
 Run from the repository root:
   uv run python tools/benchmark/pr2_benchmark.py freeze
@@ -31,11 +33,13 @@ RENDERER = ROOT / "tools" / "corpus" / "render_snils_forms.py"
 # Development samples use seeds 0 and 3; benchmark seeds must differ.
 ACQUISITIONS = {"photo": (1250, False), "scan": (1260, True)}
 COUNT_PER_LAYOUT = 20
+NEGATIVES_PER_LAYOUT = 4
 FIELDS = ("snils_number", "full_name", "birth_date")
 THRESHOLDS = {
     "field_accuracy_min": 0.90,
     "latency_p99_max_seconds": 10.0,
     "peak_rss_max_bytes": 4 * 1024**3,
+    "false_acceptance_max": 0,
 }
 TIMEOUT_SECONDS = 30.0
 
@@ -50,15 +54,21 @@ def _render(out: Path) -> dict[str, dict[str, str]]:
         target = out / acquisition
         command = ["uv", "run", "-q", str(RENDERER), "--out", str(target)]
         command += ["--count", str(COUNT_PER_LAYOUT), "--seed", str(seed)]
+        command += ["--negatives", str(NEGATIVES_PER_LAYOUT)]
         subprocess.run(
             [*command, *(["--clean"] if clean else [])],
             check=True,
             stdout=subprocess.DEVNULL,
         )
+        # Hash only what the manifest lists; stale files in WORK do not count.
+        manifest = target / "manifest.jsonl"
+        names = [
+            json.loads(row)["file"]
+            for row in manifest.read_text().splitlines()
+        ]
         hashes[acquisition] = {
-            path.name: _sha256(path)
-            for path in sorted(target.iterdir())
-            if path.is_file()
+            name: _sha256(target / name)
+            for name in sorted([*names, manifest.name])
         }
     return hashes
 
@@ -67,6 +77,7 @@ def _lock_body(hashes: dict[str, dict[str, str]]) -> dict:
     return {
         "seeds": {name: seed for name, (seed, _) in ACQUISITIONS.items()},
         "count_per_layout": COUNT_PER_LAYOUT,
+        "negatives_per_layout": NEGATIVES_PER_LAYOUT,
         "thresholds": THRESHOLDS,
         "files": hashes,
     }
@@ -82,6 +93,7 @@ def run() -> int:
         print("corpus drift: rendered files do not match the lock")
         return 2
     from sird_recognition._tesseract_pins import tesseract_checksums
+    from sird_recognition.form_classifier import classify_form
     from sird_recognition.snils_recognition import SnilsRecognitionService
     from sird_recognition.tesseract_text_reader import TesseractTextReader
 
@@ -99,16 +111,12 @@ def run() -> int:
                 file = json.loads(line)["file"]
                 image = (WORK / acquisition / file).read_bytes()
                 started = time.perf_counter()
-                result = service.recognize_image(
-                    image, timeout_seconds=TIMEOUT_SECONDS
-                )
-                row = {
+                row = _recognize(service, classify_form, image)
+                row |= {
                     "acquisition": acquisition,
                     "file": file,
                     "latency_seconds": time.perf_counter() - started,
-                    "status": result.status.value,
                 }
-                row |= {field: getattr(result, field) for field in FIELDS}
                 predictions.write(json.dumps(row, ensure_ascii=False) + "\n")
     environment = {
         "tesseract_sha256": tesseract_sha,
@@ -121,6 +129,23 @@ def run() -> int:
     }
     (WORK / "environment.json").write_text(json.dumps(environment) + "\n")
     return 0
+
+
+def _recognize(service, classify_form, image: bytes) -> dict:
+    """Probe, resolve and execute one page as the gRPC runtime does."""
+    try:
+        observations = service.read_page(
+            image, timeout_seconds=TIMEOUT_SECONDS
+        )
+    except ValueError:
+        return {"form": None, "status": "invalid_image"}
+    form = classify_form(observation.raw_text for observation in observations)
+    if not isinstance(form, str):
+        name = type(form).__name__.removesuffix("Form").lower()
+        return {"form": f"form_{name}", "status": "subject_rejected"}
+    result = service.recognize_observations(observations)
+    row = {"form": form, "status": result.status.value}
+    return row | {field: getattr(result, field) for field in FIELDS}
 
 
 def canonical(field: str, value: str | None) -> str | None:
@@ -145,14 +170,24 @@ def percentile(values: list[float], rank: float) -> float:
 def score(truth: list[dict], predictions: list[dict]) -> dict:
     """Score saved predictions against truth; aggregates only.
 
-    A refused, missing or wrong value is an error for that field.
+    A refused, missing or wrong value is an error for that field. Field
+    accuracy uses positive documents only; a verified result on a negative
+    page is a false acceptance.
     """
     by_key = {(row["acquisition"], row["file"]): row for row in predictions}
     counts: dict[str, dict[str, list[int]]] = {}
+    form_hits = false_acceptances = negatives = 0
     for expected in truth:
         key = (expected["acquisition"], expected["file"])
         got = by_key.get(key, {})
         verified = got.get("status") == "verified"
+        form_hits += got.get("form") == expected.get(
+            "expected_form", expected["layout"]
+        )
+        if not expected.get("expected_verified", True):
+            negatives += 1
+            false_acceptances += verified
+            continue
         wanted = {**expected, "snils_number": expected["snils"]}
         for stratum in ("all", key[0], expected["layout"]):
             stratum_counts = counts.setdefault(stratum, {})
@@ -176,12 +211,17 @@ def score(truth: list[dict], predictions: list[dict]) -> dict:
         "documents": len(truth),
         "predictions": len(predictions),
         "verified": sum(row["status"] == "verified" for row in predictions),
+        "negatives": negatives,
+        "false_acceptances": false_acceptances,
+        "form_accuracy": form_hits / len(truth) if truth else 0.0,
         "accuracy": accuracy,
         "latency_seconds": latency,
-        "accuracy_passed": bool(truth)
+        "accuracy_passed": "all" in accuracy
         and min(accuracy["all"].values()) >= THRESHOLDS["field_accuracy_min"],
         "latency_passed": latency["p99"]
         <= THRESHOLDS["latency_p99_max_seconds"],
+        "rejection_passed": false_acceptances
+        <= THRESHOLDS["false_acceptance_max"],
     }
 
 
@@ -216,11 +256,18 @@ def score_command() -> int:
     }
     report["passed"] = all(
         report[gate]
-        for gate in ("accuracy_passed", "latency_passed", "memory_passed")
+        for gate in (
+            "accuracy_passed",
+            "latency_passed",
+            "memory_passed",
+            "rejection_passed",
+        )
     )
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({"passed": report["passed"], **report["accuracy"]}))
+    summary = {key: report[key] for key in ("passed", "form_accuracy")}
+    summary["false_acceptances"] = report["false_acceptances"]
+    print(json.dumps(summary | report["accuracy"]))
     return 0 if report["passed"] else 1
 
 

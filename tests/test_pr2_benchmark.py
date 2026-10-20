@@ -8,6 +8,7 @@ _SCRIPT = (
     Path(__file__).parents[1] / "tools" / "benchmark" / "pr2_benchmark.py"
 )
 _FIRST = "a.png"
+_CARD = "snils_card"
 _SPEC = spec_from_file_location("pr2_benchmark", _SCRIPT)
 assert _SPEC and _SPEC.loader
 benchmark = module_from_spec(_SPEC)
@@ -18,7 +19,7 @@ _SPEC.loader.exec_module(benchmark)
 def _truth(name: str) -> dict[str, str]:
     return {
         "file": name,
-        "layout": "snils_card",
+        "layout": _CARD,
         "acquisition": "scan",
         "snils": "11223344595",
         "full_name": "Иванов Иван Иванович",
@@ -54,9 +55,8 @@ def test_refused_wrong_missing_are_errors() -> None:
     ]
     report = benchmark.score(truth, predictions)
     assert report["accuracy"]["scan"]["birth_date"] == 0
-    assert report["accuracy"]["snils_card"]["snils_number"] == pytest.approx(
-        1 / 3
-    )
+    by_card = report["accuracy"][_CARD]
+    assert by_card["snils_number"] == pytest.approx(1 / 3)
     assert not report["accuracy_passed"]
 
 
@@ -65,3 +65,29 @@ def test_latency_gate_uses_nearest_rank_p99() -> None:
     slow = [_prediction(latency_seconds=limit + 1)]
     assert not benchmark.score([_truth(_FIRST)], slow)["latency_passed"]
     assert benchmark.percentile([1, 2, 3, 4], 0.5) == 2
+
+
+def test_verified_negative_is_a_false_acceptance() -> None:
+    negative = _truth("n.png") | {
+        "layout": "card_bad_checksum",
+        "expected_form": _CARD,
+        "expected_verified": False,
+    }
+    rows = [_prediction(form=_CARD), _prediction("n.png")]
+    report = benchmark.score([_truth(_FIRST), negative], rows)
+    assert report["false_acceptances"] == 1
+    assert not report["rejection_passed"]
+    assert report["form_accuracy"] == pytest.approx(1 / 2)
+    assert report["accuracy_passed"]
+
+
+def test_rejected_negative_passes_rejection() -> None:
+    negative = _truth(_FIRST) | {
+        "layout": "unsupported_page",
+        "expected_form": "form_unsupported",
+        "expected_verified": False,
+    }
+    rows = [_prediction(form="form_unsupported", status="subject_rejected")]
+    report = benchmark.score([negative], rows)
+    assert report["rejection_passed"]
+    assert report["form_accuracy"] == 1

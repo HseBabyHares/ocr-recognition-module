@@ -51,14 +51,21 @@ def recognize_variants(inputs: RecognitionInputs) -> SnilsRecognitionResult:
         return refused_result(
             tuple(dict.fromkeys(diagnostics)), len(inputs.variants), 0
         )
-    return _recognize_observations(observations, diagnostics, inputs)
+    return recognize_observations(
+        observations,
+        diagnostics,
+        len(inputs.variants),
+        inputs.candidate_extractor,
+    )
 
 
-def _recognize_observations(
+def recognize_observations(
     observations: list[TextObservation],
     diagnostics: list[str],
-    inputs: RecognitionInputs,
+    variant_count: int,
+    candidate_extractor: CandidateExtractor | None,
 ) -> SnilsRecognitionResult:
+    """Reconcile already read observations into verified fields or refusal."""
     texts = tuple(observation.raw_text for observation in observations)
     candidates = snils_candidates(texts)
     valid = tuple(
@@ -67,17 +74,17 @@ def _recognize_observations(
     if not valid:
         return refused_result(
             tuple(dict.fromkeys((*diagnostics, "snils_missing_or_invalid"))),
-            len(inputs.variants),
+            variant_count,
             len(observations),
         )
     if len(set(valid)) != 1:
         return refused_result(
             tuple(dict.fromkeys((*diagnostics, "snils_ambiguous"))),
-            len(inputs.variants),
+            variant_count,
             len(observations),
         )
     bound_candidates, binding_diagnostics = bind_observation_candidates(
-        inputs.candidate_extractor, observations
+        candidate_extractor, observations
     )
     diagnostics.extend(binding_diagnostics)
     return assemble_verified_result(
@@ -85,7 +92,7 @@ def _recognize_observations(
             valid[0],
             texts,
             diagnostics,
-            len(inputs.variants),
+            variant_count,
             len(observations),
             tuple(bound_candidates),
         )

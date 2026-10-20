@@ -3,6 +3,8 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from sird_recognition.contracts.text_observation import TextObservation
+
 _STAGES_MODULE = "sird_recognition.contracts.stages"
 
 
@@ -57,6 +59,8 @@ class ProbeResult:
     analysis_complete: bool
     candidate_ids: tuple[str, ...]
     evidence_refs: tuple[str, ...]
+    # Page text read once by Probe; Resolve classifies it, Execute reuses it.
+    observations: tuple[TextObservation, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

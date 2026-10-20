@@ -14,14 +14,15 @@ from sird_recognition._snils_types import (
     SnilsRecognitionStatus,
 )
 from sird_recognition.contracts.stages import ExecutionSpec
+from sird_recognition.contracts.text_observation import TextObservation
 from sird_recognition.grpc_adapter import OcrServiceStub, recognize_pb2
 from sird_recognition.ocr_server import serve
 from sird_recognition.runtime import RecognizerRuntime
 from sird_recognition.snils_stages import (
     CapabilityPrepare,
-    FixedFormResolve,
+    MarkerFormResolve,
     SnilsExecuteProfile,
-    WholePageProbe,
+    TextFormProbe,
 )
 from tests import _grpc_fixtures as grpc_fixtures
 from tests import _ocr_fixtures as fixtures
@@ -41,36 +42,53 @@ _REFUSED = SnilsRecognitionResult(
 )
 
 
-class _Service:
-    def __init__(self, recognized: SnilsRecognitionResult) -> None:
-        self.recognized = recognized
+_CARD_TEXT = "СТРАХОВОЕ СВИДЕТЕЛЬСТВО"
+_NOTICE_TEXT = (
+    "Уведомление о регистрации в системе (персонифицированного) учета"
+)
 
-    def recognize_image(
-        self, image: bytes, **_: object
-    ) -> SnilsRecognitionResult:
+
+class _Service:
+    def __init__(self, recognized: SnilsRecognitionResult, text: str) -> None:
+        self.recognized = recognized
+        self.text = text
+
+    def read_page(self, image: bytes, **_: object) -> tuple[TextObservation]:
         assert image == fixtures.IMAGE
+        return (TextObservation(self.text, "fake", "1"),)
+
+    def recognize_observations(
+        self, observations: tuple[TextObservation], **_: object
+    ) -> SnilsRecognitionResult:
+        assert observations[0].raw_text == self.text
         return self.recognized
 
 
 def _runtime(
-    store: str, recognized: SnilsRecognitionResult
+    store: str, recognized: SnilsRecognitionResult, text: str
 ) -> RecognizerRuntime:
-    service: Any = _Service(recognized)
+    service: Any = _Service(recognized, text)
+    specification = ExecutionSpec(
+        "snils_card", "snils-test", ("execute",), {}, "c"
+    )
     return RecognizerRuntime(
         CapabilityPrepare(fixtures.VERIFIER),
-        WholePageProbe(),
-        FixedFormResolve(
-            ExecutionSpec("snils_card", "snils-test", ("execute",), {}, "c")
-        ),
+        TextFormProbe(service, reader(store)),
+        MarkerFormResolve({"snils_card": specification}),
         SnilsExecuteProfile(service, reader(store)),
     )
 
 
-def _call(store: str, recognized: SnilsRecognitionResult, token: str) -> Any:
+def _call(
+    store: str,
+    recognized: SnilsRecognitionResult,
+    token: str,
+    text: str = _CARD_TEXT,
+) -> Any:
     message = grpc_fixtures.request()
     message.artifact_ref.capability = token
     message.processing_policy.limits.max_input_bytes = 1024
-    server, port = serve(_runtime(store, recognized), "127.0.0.1:0", 1)
+    server, port = serve(_runtime(store, recognized, text), "127.0.0.1:0", 1)
     with grpc.insecure_channel(f"127.0.0.1:{port}") as channel:
         response = OcrServiceStub(channel).Recognize(message, timeout=5)
     server.stop(0)
@@ -106,4 +124,22 @@ class TestOcrServer:
 
         assert response.technical_code == (
             recognize_pb2.TECHNICAL_CODE_CAPABILITY_MISMATCH
+        )
+
+    def test_ambiguous_notice_is_subject_rejected(self, store: str) -> None:
+        response = _call(store, _VERIFIED, fixtures.issue(), _NOTICE_TEXT)
+
+        assert response.task_outcome == (
+            recognize_pb2.TASK_OUTCOME_SUBJECT_REJECTED
+        )
+        assert response.subject_diagnostic == (
+            recognize_pb2.SUBJECT_DIAGNOSTIC_FORM_AMBIGUOUS
+        )
+        assert all(not entry.value for entry in response.fields)
+
+    def test_unknown_page_is_subject_rejected(self, store: str) -> None:
+        response = _call(store, _VERIFIED, fixtures.issue(), "Справка")
+
+        assert response.subject_diagnostic == (
+            recognize_pb2.SUBJECT_DIAGNOSTIC_FORM_UNSUPPORTED
         )

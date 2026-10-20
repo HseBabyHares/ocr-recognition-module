@@ -47,6 +47,7 @@ quote-style = "double"
 python-version = "3.14"
 python = ".venv"
 root = [
+    ".",
     "src",
     "tests",
     "integration/src",

@@ -19,14 +19,23 @@ from sird_recognition._snils_decode import (
     perspective_image,
     validate_input,
 )
-from sird_recognition._snils_flow import RecognitionInputs, recognize_variants
+from sird_recognition._snils_flow import (
+    RecognitionInputs,
+    recognize_observations,
+    recognize_variants,
+)
 from sird_recognition._snils_images import image_variants
+from sird_recognition._snils_observations import (
+    ObservationInputs,
+    read_observations,
+)
 from sird_recognition._snils_types import (
     ImageLimits,
     SnilsRecognitionResult,
     SnilsTextReader,
 )
 from sird_recognition.candidate_extraction import CandidateExtractor
+from sird_recognition.contracts.text_observation import TextObservation
 
 
 def _request_extractor(
@@ -88,6 +97,13 @@ def _limits_from_settings(
     return _validate_cpu_threads(cpu_threads), _validate_limits(limits)
 
 
+def _check_call(timeout_seconds: float, language: str) -> None:
+    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+        raise ValueError("timeout_seconds must be finite and positive")
+    if not isinstance(language, str) or not language.strip():
+        raise ValueError("language must be non-empty")
+
+
 class SnilsRecognitionService:
     """Preprocess bounded camera images and extract verified SNILS data."""
 
@@ -121,10 +137,7 @@ class SnilsRecognitionService:
         attempt_id: str | None = None,
     ) -> SnilsRecognitionResult:
         """Run local OCR variants and return verified data or refusal."""
-        if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
-            raise ValueError("timeout_seconds must be finite and positive")
-        if not isinstance(language, str) or not language.strip():
-            raise ValueError("language must be non-empty")
+        _check_call(timeout_seconds, language)
         try:
             variants = self.preprocess_image(image_bytes)
         except (ValueError, cv2.error):
@@ -140,6 +153,49 @@ class SnilsRecognitionService:
                 language,
                 self._cpu_threads,
             )
+        )
+
+    def read_page(
+        self,
+        image_bytes: bytes,
+        *,
+        timeout_seconds: float,
+        language: str = "rus+eng",
+    ) -> tuple[TextObservation, ...]:
+        """Read every bounded variant once; ValueError on a malformed image."""
+        _check_call(timeout_seconds, language)
+        try:
+            variants = self.preprocess_image(image_bytes)
+        except cv2.error as error:
+            raise ValueError("invalid_image") from error
+        observations, _ = read_observations(
+            ObservationInputs(
+                self._reader,
+                variants,
+                timeout_seconds,
+                language,
+                self._cpu_threads,
+            )
+        )
+        return tuple(observations)
+
+    def recognize_observations(
+        self,
+        observations: tuple[TextObservation, ...],
+        *,
+        request_id: str | None = None,
+        attempt_id: str | None = None,
+    ) -> SnilsRecognitionResult:
+        """Return verified data or refusal from observations already read."""
+        # shortcut: one observation per variant read, so failed variants and
+        # reader_error diagnostics are not counted; pass them if needed.
+        return recognize_observations(
+            list(observations),
+            [],
+            len(observations),
+            _request_extractor(
+                self._candidate_extractor, request_id, attempt_id
+            ),
         )
 
     @classmethod

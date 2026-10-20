@@ -119,6 +119,7 @@ def run_stage_sequence(
         state.prepared,
         state.specification,
         state.context,
+        observations=prepared_or_response[1].observations,
     )
     state.execution = execution
     state.execution_diagnostics = execution.diagnostics

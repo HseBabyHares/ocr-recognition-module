@@ -1,13 +1,13 @@
 {
   "accuracy": {
-    "adi_reg_bold": {
-      "birth_date": 1.0,
-      "full_name": 0.95,
-      "snils_number": 1.0
-    },
-    "adi_reg_lines": {
+    "adi_reg_2019": {
       "birth_date": 1.0,
       "full_name": 0.975,
+      "snils_number": 1.0
+    },
+    "adi_reg_2023": {
+      "birth_date": 1.0,
+      "full_name": 0.95,
       "snils_number": 1.0
     },
     "all": {
@@ -32,25 +32,30 @@
     }
   },
   "accuracy_passed": true,
-  "documents": 120,
+  "documents": 144,
   "environment": {
     "platform": "linux",
     "tessdata_sha256": "c45bdba00c940f22965ee218331fb6c83bacf27b50eee4f13f846ff511d0759e",
     "tesseract_sha256": "9c19bce33d5408d82d691e9827862da3276814033b32f5e5e3263175a3d8b917"
   },
-  "latency_passed": true,
+  "false_acceptances": 0,
+  "form_accuracy": 0.9930555555555556,
+  "latency_passed": false,
   "latency_seconds": {
-    "p50": 3.0824316299986094,
-    "p95": 5.667740368000523,
-    "p99": 6.611917305999668
+    "p50": 4.308493577998888,
+    "p95": 8.61513731100058,
+    "p99": 10.22938792900095
   },
-  "lock_sha256": "96b99f51a6b2093d6a894dd867cf083f5a11779643755c081674e9870c380d5a",
+  "lock_sha256": "18921f42ef37b667173f7570159bd7a1d8fa343e9d66eb60505da8dd0596ecdc",
   "memory_passed": true,
-  "passed": true,
-  "peak_rss_bytes": 142467072,
-  "prediction_sha256": "fe8f81cdd733ac15ec7952b8f980b2817c49ffcf06cd7c5bd81c9ba4e92ba637",
-  "predictions": 120,
+  "negatives": 24,
+  "passed": false,
+  "peak_rss_bytes": 142516224,
+  "prediction_sha256": "7b55484279af2e43cb529668da69930ceb3042262a50211747119ab1a1e67d94",
+  "predictions": 144,
+  "rejection_passed": true,
   "thresholds": {
+    "false_acceptance_max": 0,
     "field_accuracy_min": 0.9,
     "latency_p99_max_seconds": 10.0,
     "peak_rss_max_bytes": 4294967296

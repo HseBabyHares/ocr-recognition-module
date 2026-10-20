@@ -12,6 +12,7 @@ from sird_recognition.artifact_capability import (
     CapabilityVerifier,
     parse_keys,
 )
+from sird_recognition.contracts.text_observation import TextObservation
 from tests import _grpc_fixtures as grpc_fixtures
 
 KEY_HEX = "abababababababababababababababababababababababababababababababab"
@@ -26,6 +27,11 @@ VERIFIER = CapabilityVerifier(
     audience="ocr.service",
     clock=lambda: NOW,
 )
+
+
+def page_text(text: str) -> tuple[TextObservation, ...]:
+    """Return one fake reader observation of the given page text."""
+    return (TextObservation(text, "fake", "1"),)
 
 
 def issue(**overrides: object) -> str:

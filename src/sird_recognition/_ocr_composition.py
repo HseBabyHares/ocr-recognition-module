@@ -26,21 +26,6 @@ from sird_recognition.tesseract_text_reader import TesseractTextReader
 def build_runtime() -> RecognizerRuntime:
     """Compose the SNILS runtime from the environment, failing closed."""
     tesseract_sha, tessdata_sha = tesseract_checksums()
-    # All three forms share one field profile; the form id is still recorded.
-    specifications = {
-        form_id: ExecutionSpec(
-            form_id=form_id,
-            profile_id="snils-tesseract-v1",
-            stage_names=("prepare", "probe", "resolve", "execute"),
-            implementation_checksums={
-                "tesseract": tesseract_sha,
-                "tessdata": tessdata_sha,
-            },
-            calibration_ref=CALIBRATION_REF,
-            reader_language="rus+eng",
-        )
-        for form_id in SUPPORTED_FORMS
-    }
     verifier = CapabilityVerifier(
         keys=parse_keys(_required("CAPABILITY_KEYS")),
         issuer=_required("CAPABILITY_ISSUER"),
@@ -62,9 +47,29 @@ def build_runtime() -> RecognizerRuntime:
     return RecognizerRuntime(
         CapabilityPrepare(verifier, os.environ.get("SIRD_OCR_POLICY_ID")),
         TextFormProbe(service, material),
-        MarkerFormResolve(specifications),
+        MarkerFormResolve(_specifications(tesseract_sha, tessdata_sha)),
         SnilsExecuteProfile(service, material),
     )
+
+
+def _specifications(
+    tesseract_sha: str, tessdata_sha: str
+) -> dict[str, ExecutionSpec]:
+    # All three forms share one field profile; the form id is still recorded.
+    return {
+        form_id: ExecutionSpec(
+            form_id=form_id,
+            profile_id="snils-tesseract-v1",
+            stage_names=("prepare", "probe", "resolve", "execute"),
+            implementation_checksums={
+                "tesseract": tesseract_sha,
+                "tessdata": tessdata_sha,
+            },
+            calibration_ref=CALIBRATION_REF,
+            reader_language="rus+eng",
+        )
+        for form_id in SUPPORTED_FORMS
+    }
 
 
 def _required(name: str) -> str:

@@ -35,9 +35,11 @@ class RecognitionInputs:
     cpu_threads: int
 
 
-def recognize_variants(inputs: RecognitionInputs) -> SnilsRecognitionResult:
-    """Read variants in order and reconcile their evidence."""
-    observations, diagnostics = read_observations(
+def read_variants(
+    inputs: RecognitionInputs,
+) -> tuple[list[TextObservation], list[str]]:
+    """Read variants in order; return observations and reader diagnostics."""
+    return read_observations(
         ObservationInputs(
             inputs.reader,
             inputs.variants,
@@ -46,6 +48,11 @@ def recognize_variants(inputs: RecognitionInputs) -> SnilsRecognitionResult:
             inputs.cpu_threads,
         )
     )
+
+
+def recognize_variants(inputs: RecognitionInputs) -> SnilsRecognitionResult:
+    """Read variants in order and reconcile their evidence."""
+    observations, diagnostics = read_variants(inputs)
     if not observations:
         diagnostics.append("unreadable")
         return refused_result(

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from collections.abc import Callable
 from typing import cast
 
@@ -10,6 +9,7 @@ import cv2
 
 from sird_recognition._snils_checks import (
     ServiceConfig,
+    check_call,
     is_valid_snils,
     normalize_snils,
 )
@@ -21,14 +21,11 @@ from sird_recognition._snils_decode import (
 )
 from sird_recognition._snils_flow import (
     RecognitionInputs,
+    read_variants,
     recognize_observations,
     recognize_variants,
 )
 from sird_recognition._snils_images import image_variants
-from sird_recognition._snils_observations import (
-    ObservationInputs,
-    read_observations,
-)
 from sird_recognition._snils_types import (
     ImageLimits,
     SnilsRecognitionResult,
@@ -97,14 +94,8 @@ def _limits_from_settings(
     return _validate_cpu_threads(cpu_threads), _validate_limits(limits)
 
 
-def _check_call(timeout_seconds: float, language: str) -> None:
-    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
-        raise ValueError("timeout_seconds must be finite and positive")
-    if not isinstance(language, str) or not language.strip():
-        raise ValueError("language must be non-empty")
-
-
-class SnilsRecognitionService:
+# The stable public surface plus the probe and execute stage entry points.
+class SnilsRecognitionService:  # noqa: WPS214
     """Preprocess bounded camera images and extract verified SNILS data."""
 
     def __init__(
@@ -137,7 +128,7 @@ class SnilsRecognitionService:
         attempt_id: str | None = None,
     ) -> SnilsRecognitionResult:
         """Run local OCR variants and return verified data or refusal."""
-        _check_call(timeout_seconds, language)
+        check_call(timeout_seconds, language)
         try:
             variants = self.preprocess_image(image_bytes)
         except (ValueError, cv2.error):
@@ -163,14 +154,15 @@ class SnilsRecognitionService:
         language: str = "rus+eng",
     ) -> tuple[TextObservation, ...]:
         """Read every bounded variant once; ValueError on a malformed image."""
-        _check_call(timeout_seconds, language)
+        check_call(timeout_seconds, language)
         try:
             variants = self.preprocess_image(image_bytes)
         except cv2.error as error:
             raise ValueError("invalid_image") from error
-        observations, _ = read_observations(
-            ObservationInputs(
+        observations, _ = read_variants(
+            RecognitionInputs(
                 self._reader,
+                None,
                 variants,
                 timeout_seconds,
                 language,

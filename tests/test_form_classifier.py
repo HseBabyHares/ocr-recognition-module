@@ -2,8 +2,8 @@ import pytest
 
 from sird_recognition.contracts.stages import AmbiguousForm, UnsupportedForm
 from sird_recognition.form_classifier import (
-    ADI_REG_2019,
-    ADI_REG_2023,
+    ADI_REG_PFR,
+    ADI_REG_SFR,
     SNILS_CARD,
     classify_form,
 )
@@ -16,9 +16,9 @@ _CARD = "СТРАХОВОЕ СВИДЕТЕЛЬСТВО"
     ("texts", "expected"),
     [
         ((_CARD, "ГОСУДАРСТВЕННОГО ПЕНСИОННОГО СТРАХОВАНИЯ"), SNILS_CARD),
-        ((_NOTICE, "территориального органа ПФР"), ADI_REG_2019),
-        ((_NOTICE, "территориального органа СФР"), ADI_REG_2023),
-        (("Форма АДИ-РЕГ", "органа CФP"), ADI_REG_2023),
+        ((_NOTICE, "территориального органа ПФР"), ADI_REG_PFR),
+        ((_NOTICE, "территориального органа СФР"), ADI_REG_SFR),
+        (("Форма АДИ-РЕГ", "органа CФP"), ADI_REG_SFR),
     ],
 )
 def test_supported_form_is_resolved(texts: tuple[str, ...], expected: str):

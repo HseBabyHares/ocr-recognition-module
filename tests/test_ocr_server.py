@@ -14,7 +14,6 @@ from sird_recognition._snils_types import (
     SnilsRecognitionStatus,
 )
 from sird_recognition.contracts.stages import ExecutionSpec
-from sird_recognition.contracts.text_observation import TextObservation
 from sird_recognition.grpc_adapter import OcrServiceStub, recognize_pb2
 from sird_recognition.ocr_server import serve
 from sird_recognition.runtime import RecognizerRuntime
@@ -53,14 +52,14 @@ class _Service:
         self.recognized = recognized
         self.text = text
 
-    def read_page(self, image: bytes, **_: object) -> tuple[TextObservation]:
+    def read_page(self, image: bytes, **_: object) -> tuple[Any, ...]:
         assert image == fixtures.IMAGE
-        return (TextObservation(self.text, "fake", "1"),)
+        return fixtures.page_text(self.text)
 
     def recognize_observations(
-        self, observations: tuple[TextObservation], **_: object
+        self, observations: tuple[Any, ...], **_: object
     ) -> SnilsRecognitionResult:
-        assert observations[0].raw_text == self.text
+        assert observations == fixtures.page_text(self.text)
         return self.recognized
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Iterable
 
@@ -71,3 +72,11 @@ def snils_candidates(texts: Iterable[str]) -> tuple[str, ...]:
             if normalized is not None and normalized not in candidates:
                 candidates.append(normalized)
     return tuple(candidates)
+
+
+def check_call(timeout_seconds: float, language: str) -> None:
+    """Refuse a non-finite timeout or an empty OCR language."""
+    if not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
+        raise ValueError("timeout_seconds must be finite and positive")
+    if not isinstance(language, str) or not language.strip():
+        raise ValueError("language must be non-empty")

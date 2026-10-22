@@ -44,6 +44,20 @@ def supported_name_candidates(
     }
 
 
+def majority_name_candidates(
+    rule_candidates: set[str],
+    texts: tuple[str, ...],
+) -> set[str]:
+    """Keep the one rule name that most OCR variants give, if any."""
+    per_text = [name_candidates((text,)) for text in texts]
+    majority = {
+        name_candidate
+        for name_candidate in rule_candidates
+        if 2 * sum(name_candidate in found for found in per_text) > len(texts)
+    }
+    return majority if len(majority) == 1 else rule_candidates
+
+
 def combined_name_candidates(
     texts: tuple[str, ...],
     bound_candidates: tuple[CandidateSpan, ...],
@@ -84,6 +98,8 @@ def choose_name_candidates(
     if len(model_candidates) == 1:
         return set(model_candidates)
     if not combined_candidates:
+        if not model_candidates:
+            return majority_name_candidates(rule_candidates, texts)
         return rule_candidates | model_candidates
     filtered = {
         name_candidate

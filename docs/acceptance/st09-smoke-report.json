@@ -1,0 +1,994 @@
+{
+ "run": {
+  "speed": 2000.0,
+  "limit": 20,
+  "lock_sha256": "acb9a3c8025d41622a0a2f1133c3fb0cb46c3b3f346d5efaceb35085d3d87255",
+  "api": "http://localhost:18080/api/v1/processing"
+ },
+ "environment": {
+  "recorded_at": "2026-10-22T12:55:25Z",
+  "host": {
+   "uname": "Linux doster-manjaro 7.1.13-2-MANJARO #1 SMP PREEMPT_DYNAMIC Fri, 04 Sep 2026 15:41:39 +0000 x86_64 ",
+   "cpu_count": 20,
+   "cpu_model": "12th Gen Intel(R) Core(TM) i7-12700H",
+   "mem_total": "MemTotal:       65532388 kB"
+  },
+  "python": "3.14.7",
+  "repository_commit": "500bbe2cee3f8e8a08e2a7e002385fa4476094dc",
+  "kubectl": ",\n    \"buildDate\": \"2026-08-25T21:11:57Z\",\n    \"goVersion\": \"go1.27.0-X:nodwarf5\",\n    \"compiler\": \"gc\",\n    \"platform\": \"linux/amd64\"\n  },\n  \"kustomizeVersion\": \"v5.8.1\",\n  \"serverVersion\": {\n    \"major\": \"1\",\n    \"minor\": \"37\",\n    \"emulationMajor\": \"1\",\n    \"emulationMinor\": \"37\",\n    \"minCompatibilityMajor\": \"1\",\n    \"minCompatibilityMinor\": \"36\",\n    \"gitVersion\": \"v1.37.0\",\n    \"gitCommit\": \"f54c212e3a2f75d674b717a9b29052b20b60aefc\",\n    \"gitTreeState\": \"clean\",\n    \"buildDate\": \"2026-08-26T10:44:25Z\",\n    \"goVersion\": \"go1.26.6\",\n    \"compiler\": \"gc\",\n    \"platform\": \"linux/amd64\"\n  }\n}",
+  "nodes": [
+   "sird-dev-control-plane 20 65532388Ki v1.37.0 Debian GNU/Linux 13 (trixie)"
+  ],
+  "images": [
+   "hse-example-app=sird-demo-bff:kind",
+   "keycloak=quay.io/keycloak/keycloak:26.4",
+   "postgres=postgres:17-alpine",
+   "rabbitmq=rabbitmq:4.1-management-alpine",
+   "rustfs=rustfs/rustfs:1.0.0",
+   "sird-acl-service=sird-acl-service:kind",
+   "sird-ocr=sird-ocr:kind",
+   "sird-portal=sird-frontend:kind",
+   "sird-process-service=sird-process-server:kind",
+   "sird-task-service=sird-task-server:kind"
+  ]
+ },
+ "counts": {
+  "planned": 20,
+  "submitted": 20,
+  "accepted": 20,
+  "rejected": 0,
+  "request_failed": 0,
+  "duplicate_task_ids": 0,
+  "terminal": 20,
+  "lost": 0,
+  "by_state": {
+   "RECOGNIZED": 20
+  },
+  "by_outcome": {
+   "COMPLETED": 20
+  }
+ },
+ "latency_seconds": {
+  "p50": 5.351000000000003,
+  "p95": 9.506,
+  "p99": 9.521
+ },
+ "throughput": {
+  "terminal_per_hour_wall": 1810.8,
+  "terminal_per_profile_hour": {
+   "4": 1,
+   "9": 1,
+   "12": 3,
+   "13": 2,
+   "15": 2,
+   "16": 2,
+   "17": 2,
+   "18": 2,
+   "20": 1,
+   "21": 2,
+   "23": 2
+  },
+  "first_submit_s": 2.046,
+  "last_submit_s": 37.102,
+  "last_terminal_s": 41.807,
+  "drain_after_last_submit_s": 4.705
+ },
+ "backlog_max_messages": {
+  "sird.task.results.v1": 0,
+  "sird.process.quarantine.v1": 22,
+  "sird.process.tasks.v1": 0,
+  "sird.task.quarantine.v1": 0
+ },
+ "window_seconds_scaled": 43.2,
+ "completed_within_window": true,
+ "full_profile": false,
+ "pr1_passed": false,
+ "changed_after_terminal": 0,
+ "requests": [
+  {
+   "first_sequence": 0,
+   "files": 1,
+   "http": 201,
+   "sent_at": 2.046,
+   "seconds": 0.312
+  },
+  {
+   "first_sequence": 250,
+   "files": 1,
+   "http": 201,
+   "sent_at": 12.803,
+   "seconds": 0.022
+  },
+  {
+   "first_sequence": 500,
+   "files": 2,
+   "http": 201,
+   "sent_at": 16.685,
+   "seconds": 0.03
+  },
+  {
+   "first_sequence": 1000,
+   "files": 1,
+   "http": 201,
+   "sent_at": 17.499,
+   "seconds": 0.029
+  },
+  {
+   "first_sequence": 1250,
+   "files": 1,
+   "http": 201,
+   "sent_at": 18.459,
+   "seconds": 0.03
+  },
+  {
+   "first_sequence": 1500,
+   "files": 1,
+   "http": 201,
+   "sent_at": 19.382,
+   "seconds": 0.02
+  },
+  {
+   "first_sequence": 1750,
+   "files": 2,
+   "http": 201,
+   "sent_at": 21.981,
+   "seconds": 0.039
+  },
+  {
+   "first_sequence": 2250,
+   "files": 1,
+   "http": 201,
+   "sent_at": 22.182,
+   "seconds": 0.024
+  },
+  {
+   "first_sequence": 2500,
+   "files": 1,
+   "http": 201,
+   "sent_at": 23.395,
+   "seconds": 0.021
+  },
+  {
+   "first_sequence": 2750,
+   "files": 1,
+   "http": 201,
+   "sent_at": 24.73,
+   "seconds": 0.021
+  },
+  {
+   "first_sequence": 3000,
+   "files": 2,
+   "http": 201,
+   "sent_at": 26.981,
+   "seconds": 0.052
+  },
+  {
+   "first_sequence": 3500,
+   "files": 1,
+   "http": 201,
+   "sent_at": 27.805,
+   "seconds": 0.018
+  },
+  {
+   "first_sequence": 3750,
+   "files": 1,
+   "http": 201,
+   "sent_at": 28.601,
+   "seconds": 0.021
+  },
+  {
+   "first_sequence": 4000,
+   "files": 1,
+   "http": 201,
+   "sent_at": 29.634,
+   "seconds": 0.021
+  },
+  {
+   "first_sequence": 4250,
+   "files": 1,
+   "http": 201,
+   "sent_at": 31.905,
+   "seconds": 0.018
+  },
+  {
+   "first_sequence": 4500,
+   "files": 1,
+   "http": 201,
+   "sent_at": 32.286,
+   "seconds": 0.027
+  },
+  {
+   "first_sequence": 4750,
+   "files": 1,
+   "http": 201,
+   "sent_at": 37.102,
+   "seconds": 0.026
+  }
+ ],
+ "tasks": {
+  "85": {
+   "sequences": [
+    0
+   ],
+   "accepted_at": 2.046,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:30.664056Z",
+   "terminal_at": 7.231
+  },
+  "86": {
+   "sequences": [
+    250
+   ],
+   "accepted_at": 12.803,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:40.674872Z",
+   "terminal_at": 16.847
+  },
+  "87": {
+   "sequences": [
+    500
+   ],
+   "accepted_at": 16.685,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:44.690482Z",
+   "terminal_at": 22.036
+  },
+  "88": {
+   "sequences": [
+    750
+   ],
+   "accepted_at": 16.685,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:44.684413Z",
+   "terminal_at": 22.036
+  },
+  "89": {
+   "sequences": [
+    1000
+   ],
+   "accepted_at": 17.499,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:47.711214Z",
+   "terminal_at": 24.033
+  },
+  "90": {
+   "sequences": [
+    1250
+   ],
+   "accepted_at": 18.459,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:46.707394Z",
+   "terminal_at": 22.036
+  },
+  "91": {
+   "sequences": [
+    1500
+   ],
+   "accepted_at": 19.382,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:48.716034Z",
+   "terminal_at": 24.033
+  },
+  "92": {
+   "sequences": [
+    1750
+   ],
+   "accepted_at": 21.981,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:50.723545Z",
+   "terminal_at": 27.049
+  },
+  "93": {
+   "sequences": [
+    2000
+   ],
+   "accepted_at": 21.981,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:50.73052Z",
+   "terminal_at": 27.049
+  },
+  "94": {
+   "sequences": [
+    2250
+   ],
+   "accepted_at": 22.182,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:53.740306Z",
+   "terminal_at": 29.048
+  },
+  "95": {
+   "sequences": [
+    2500
+   ],
+   "accepted_at": 23.395,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:53.734979Z",
+   "terminal_at": 29.048
+  },
+  "96": {
+   "sequences": [
+    2750
+   ],
+   "accepted_at": 24.73,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:55.743753Z",
+   "terminal_at": 31.94
+  },
+  "97": {
+   "sequences": [
+    3000
+   ],
+   "accepted_at": 26.981,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:55.750373Z",
+   "terminal_at": 31.94
+  },
+  "98": {
+   "sequences": [
+    3250
+   ],
+   "accepted_at": 26.981,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:58.766753Z",
+   "terminal_at": 33.937
+  },
+  "99": {
+   "sequences": [
+    3500
+   ],
+   "accepted_at": 27.805,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:57.76237Z",
+   "terminal_at": 33.937
+  },
+  "100": {
+   "sequences": [
+    3750
+   ],
+   "accepted_at": 28.601,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:55:59.771968Z",
+   "terminal_at": 37.139
+  },
+  "101": {
+   "sequences": [
+    4000
+   ],
+   "accepted_at": 29.634,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:56:02.781991Z",
+   "terminal_at": 39.14
+  },
+  "102": {
+   "sequences": [
+    4250
+   ],
+   "accepted_at": 31.905,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:56:02.777979Z",
+   "terminal_at": 39.14
+  },
+  "103": {
+   "sequences": [
+    4500
+   ],
+   "accepted_at": 32.286,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:56:04.786459Z",
+   "terminal_at": 41.807
+  },
+  "104": {
+   "sequences": [
+    4750
+   ],
+   "accepted_at": 37.102,
+   "state": "RECOGNIZED",
+   "outcome": "COMPLETED",
+   "updated_at": "2026-10-22T12:56:05.792257Z",
+   "terminal_at": 41.807
+  }
+ },
+ "items": {
+  "0": {
+   "document": "photo/snils_card-453.jpg",
+   "file": "st09-00000-photo_snils_card-453.jpg",
+   "submitted_at": 2.046,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 85
+  },
+  "250": {
+   "document": "scan/adi_reg_2019-144.png",
+   "file": "st09-00250-scan_adi_reg_2019-144.png",
+   "submitted_at": 12.803,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 86
+  },
+  "500": {
+   "document": "scan/adi_reg_2019-728.png",
+   "file": "st09-00500-scan_adi_reg_2019-728.png",
+   "submitted_at": 16.685,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 87
+  },
+  "750": {
+   "document": "scan/snils_card-465.png",
+   "file": "st09-00750-scan_snils_card-465.png",
+   "submitted_at": 16.685,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 88
+  },
+  "1000": {
+   "document": "scan/adi_reg_2023-556.png",
+   "file": "st09-01000-scan_adi_reg_2023-556.png",
+   "submitted_at": 17.499,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 89
+  },
+  "1250": {
+   "document": "scan/snils_card-765.png",
+   "file": "st09-01250-scan_snils_card-765.png",
+   "submitted_at": 18.459,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 90
+  },
+  "1500": {
+   "document": "scan/snils_card-174.png",
+   "file": "st09-01500-scan_snils_card-174.png",
+   "submitted_at": 19.382,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 91
+  },
+  "1750": {
+   "document": "scan/adi_reg_2023-527.png",
+   "file": "st09-01750-scan_adi_reg_2023-527.png",
+   "submitted_at": 21.981,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 92
+  },
+  "2000": {
+   "document": "photo/adi_reg_2019-315.jpg",
+   "file": "st09-02000-photo_adi_reg_2019-315.jpg",
+   "submitted_at": 21.981,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 93
+  },
+  "2250": {
+   "document": "photo/adi_reg_2019-684.jpg",
+   "file": "st09-02250-photo_adi_reg_2019-684.jpg",
+   "submitted_at": 22.182,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 94
+  },
+  "2500": {
+   "document": "scan/adi_reg_2023-005.png",
+   "file": "st09-02500-scan_adi_reg_2023-005.png",
+   "submitted_at": 23.395,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 95
+  },
+  "2750": {
+   "document": "scan/snils_card-541.png",
+   "file": "st09-02750-scan_snils_card-541.png",
+   "submitted_at": 24.73,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 96
+  },
+  "3000": {
+   "document": "photo/adi_reg_2023-289.jpg",
+   "file": "st09-03000-photo_adi_reg_2023-289.jpg",
+   "submitted_at": 26.981,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 97
+  },
+  "3250": {
+   "document": "photo/adi_reg_2019-549.jpg",
+   "file": "st09-03250-photo_adi_reg_2019-549.jpg",
+   "submitted_at": 26.981,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 98
+  },
+  "3500": {
+   "document": "scan/adi_reg_2023-390.png",
+   "file": "st09-03500-scan_adi_reg_2023-390.png",
+   "submitted_at": 27.805,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 99
+  },
+  "3750": {
+   "document": "scan/adi_reg_2023-750.png",
+   "file": "st09-03750-scan_adi_reg_2023-750.png",
+   "submitted_at": 28.601,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 100
+  },
+  "4000": {
+   "document": "photo/adi_reg_2019-533.jpg",
+   "file": "st09-04000-photo_adi_reg_2019-533.jpg",
+   "submitted_at": 29.634,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 101
+  },
+  "4250": {
+   "document": "photo/snils_card-252.jpg",
+   "file": "st09-04250-photo_snils_card-252.jpg",
+   "submitted_at": 31.905,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 102
+  },
+  "4500": {
+   "document": "scan/adi_reg_2019-564.png",
+   "file": "st09-04500-scan_adi_reg_2019-564.png",
+   "submitted_at": 32.286,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 103
+  },
+  "4750": {
+   "document": "scan/adi_reg_2019-081.png",
+   "file": "st09-04750-scan_adi_reg_2019-081.png",
+   "submitted_at": 37.102,
+   "http": 201,
+   "outcome": "ACCEPTED",
+   "task_id": 104
+  }
+ },
+ "samples": [
+  {
+   "t": 0.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.8GB / 6.7GB",
+     "CPUPerc": "14.80%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "5.98%",
+     "MemUsage": "3.738GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "133MB / 33.2MB",
+     "PIDs": "1050"
+    }
+   ]
+  },
+  {
+   "t": 5.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "10.91%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.11%",
+     "MemUsage": "3.819GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "133MB / 33.3MB",
+     "PIDs": "1058"
+    }
+   ]
+  },
+  {
+   "t": 10.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "16.30%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.11%",
+     "MemUsage": "3.821GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "133MB / 33.4MB",
+     "PIDs": "1058"
+    }
+   ]
+  },
+  {
+   "t": 15.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "14.10%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.13%",
+     "MemUsage": "3.83GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "133MB / 33.4MB",
+     "PIDs": "1059"
+    }
+   ]
+  },
+  {
+   "t": 20.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "153.16%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.23%",
+     "MemUsage": "3.896GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "134MB / 33.5MB",
+     "PIDs": "1065"
+    }
+   ]
+  },
+  {
+   "t": 25.0,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "220.22%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.28%",
+     "MemUsage": "3.927GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "134MB / 33.5MB",
+     "PIDs": "1067"
+    }
+   ]
+  },
+  {
+   "t": 30.001,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.7GB",
+     "CPUPerc": "214.36%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.30%",
+     "MemUsage": "3.94GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "135MB / 33.6MB",
+     "PIDs": "1066"
+    }
+   ]
+  },
+  {
+   "t": 35.001,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.71GB",
+     "CPUPerc": "94.84%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.24%",
+     "MemUsage": "3.901GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "135MB / 33.7MB",
+     "PIDs": "1064"
+    }
+   ]
+  },
+  {
+   "t": 40.001,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.71GB",
+     "CPUPerc": "11.57%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.24%",
+     "MemUsage": "3.902GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "135MB / 33.7MB",
+     "PIDs": "1063"
+    }
+   ]
+  },
+  {
+   "t": 41.807,
+   "queues": [
+    {
+     "name": "sird.task.results.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.quarantine.v1",
+     "messages": 22,
+     "messages_ready": 22,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.process.tasks.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    },
+    {
+     "name": "sird.task.quarantine.v1",
+     "messages": 0,
+     "messages_ready": 0,
+     "messages_unacknowledged": 0
+    }
+   ],
+   "nodes": [
+    {
+     "BlockIO": "2.84GB / 6.71GB",
+     "CPUPerc": "8.17%",
+     "Container": "sird-dev-control-plane",
+     "ID": "67cd4c239253",
+     "MemPerc": "6.24%",
+     "MemUsage": "3.9GiB / 62.5GiB",
+     "Name": "sird-dev-control-plane",
+     "NetIO": "135MB / 33.8MB",
+     "PIDs": "1063"
+    }
+   ]
+  }
+ ]
+}

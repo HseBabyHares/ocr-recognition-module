@@ -1,0 +1,6 @@
+ST-09 compressed run, speed x2000.0, 20 planned
+accepted 20, rejected 0, request failures 0, duplicate IDs 0
+terminal 20, lost 0, by outcome {'COMPLETED': 20}, changed after terminal 0
+latency s {'p50': 5.351000000000003, 'p95': 9.506, 'p99': 9.521}
+drain after last submit 4.705 s, max backlog {'sird.task.results.v1': 0, 'sird.process.quarantine.v1': 22, 'sird.process.tasks.v1': 0, 'sird.task.quarantine.v1': 0}
+PR-1 passed: False

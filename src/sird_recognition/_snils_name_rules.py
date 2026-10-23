@@ -12,6 +12,8 @@ from sird_recognition._snils_labels import (
 )
 
 _NAME_PARTS = ("фамилия", "имя", "отчество")
+# The longest word left from a damaged "Ф.И.О." label.
+_LABEL_DUST = 3
 # Printed card words form three-word runs that look like a name.
 _HEADER_WORDS = frozenset(
     (
@@ -33,15 +35,6 @@ _HEADER_WORDS = frozenset(
         "женский",
     )
 )
-
-
-def _last_name_marker(tokens: list[str], name_label_tokens: frozenset[str]):
-    marker_indexes = [
-        token_index
-        for token_index, token in enumerate(tokens)
-        if token.casefold() in name_label_tokens
-    ]
-    return marker_indexes[-1] if marker_indexes else None
 
 
 def _following_name_tokens(
@@ -69,12 +62,16 @@ def _labelled_name(
     name_label_tokens: frozenset[str],
     field_labels: tuple[str, ...],
 ) -> list[str] | None:
-    marker_index = _last_name_marker(tokens, name_label_tokens)
-    if marker_index is None:
+    marker_indexes = [
+        token_index
+        for token_index, token in enumerate(tokens)
+        if token.casefold() in name_label_tokens
+    ]
+    if not marker_indexes:
         return None
     name_tokens = [
         token
-        for token in tokens[marker_index + 1 :]
+        for token in tokens[marker_indexes[-1] + 1 :]
         if token.casefold() not in name_label_tokens
     ]
     return _following_name_tokens(
@@ -83,6 +80,31 @@ def _labelled_name(
         name_tokens,
         field_labels,
     )
+
+
+def _stacked_names(
+    lines: list[str],
+    excluded_words: frozenset[str],
+    field_labels: tuple[str, ...],
+) -> set[str]:
+    stacked_names: set[str] = set()
+    for line_index, tokens in enumerate(map(word_tokens, lines)):
+        # OCR can lose the "Ф.И.О." label or leave short dust from it,
+        # while the surname, name and patronymic rows of the card stay.
+        # An empty row gives two words at most and is dropped below.
+        label_dust = tokens[:-1]
+        if max(map(len, label_dust), default=0) <= _LABEL_DUST:
+            name_tokens = _following_name_tokens(
+                lines, line_index, tokens[-1:], field_labels
+            )
+            stacked_names.add(" ".join(name_tokens))
+    return {
+        name
+        for name in stacked_names
+        if len(name.split()) == _Patterns.name_token_count
+        and name.isupper()
+        and excluded_words.isdisjoint(name.casefold().split())
+    }
 
 
 def _unlabelled_values(
@@ -112,7 +134,13 @@ def _line_name_values(
     name_label_tokens: frozenset[str],
     field_labels: tuple[str, ...],
 ) -> set[tuple[bool, str]]:
-    name_values = {(True, name) for name in _field_labelled_names(lines)}
+    name_values = {
+        (True, name)
+        for name in _field_labelled_names(lines)
+        | _stacked_names(
+            lines, name_label_tokens | _HEADER_WORDS, field_labels
+        )
+    }
     for line_index, line in enumerate(lines):
         if has_label(line, field_labels):
             continue

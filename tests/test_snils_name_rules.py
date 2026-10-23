@@ -1,3 +1,5 @@
+import pytest
+
 from sird_recognition._snils_name_resolution import resolve_name
 from sird_recognition._snils_name_rules import name_candidates
 
@@ -7,11 +9,13 @@ _NOISY = _CARD.format("ПЕТРОВИЧЬ")
 _NAME = "СИДОРОВ ПЕТР ПЕТРОВИЧ"
 
 
-def test_dotted_label_outranks_header_words() -> None:
+# OCR can keep the "Ф.И.О." label, leave short dust from it or lose it.
+@pytest.mark.parametrize("label", ["Ф.И.О. ", "ФИ ", ""])
+def test_name_rows_outrank_header_words(label: str) -> None:
     text = (
         "СТРАХОВОЕ СВИДЕТЕЛЬСТВО\n"
         "ГОСУДАРСТВЕННОГО ПЕНСИОННОГО СТРАХОВАНИЯ\n"
-        "Ф.И.О. СИДОРОВ\n"
+        f"{label}СИДОРОВ\n"
         "ПЕТР\n"
         "ПЕТРОВИЧ\n"
         "Дата и место рождения 23 января 2004"

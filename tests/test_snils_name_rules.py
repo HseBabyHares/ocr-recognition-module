@@ -19,6 +19,18 @@ def test_dotted_label_outranks_header_words() -> None:
     assert name_candidates([text]) == {"СИДОРОВ ПЕТР ПЕТРОВИЧ"}
 
 
+def test_unlabelled_header_words_are_no_name() -> None:
+    text = (
+        "РОССИЙСКАЯ ФЕДЕРАЦИЯ\n"
+        "СТРАХОВОЕ СВИДЕТЕЛЬСТВО\n"
+        "ГОСУДАРСТВЕННОГО ПЕНСИОННОГО СТРАХОВАНИЯ\n"
+        "СИДОРОВ ПЕТР ПЕТРОВИЧ\n"
+        "Пол Мужской ГОР\n"
+    )
+
+    assert name_candidates([text]) == {"СИДОРОВ ПЕТР ПЕТРОВИЧ"}
+
+
 def test_separate_name_rows_resolved() -> None:
     text = (
         "Уведомление о регистрации в системе индивидуального\n"

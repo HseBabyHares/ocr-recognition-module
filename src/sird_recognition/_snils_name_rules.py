@@ -12,6 +12,27 @@ from sird_recognition._snils_labels import (
 )
 
 _NAME_PARTS = ("фамилия", "имя", "отчество")
+# Printed card words form three-word runs that look like a name.
+_HEADER_WORDS = frozenset(
+    (
+        "российская",
+        "федерация",
+        "страховое",
+        "свидетельство",
+        "государственного",
+        "пенсионного",
+        "страхования",
+        "пенсионный",
+        "фонд",
+        "дата",
+        "место",
+        "рождения",
+        "регистрации",
+        "пол",
+        "мужской",
+        "женский",
+    )
+)
 
 
 def _last_name_marker(tokens: list[str], name_label_tokens: frozenset[str]):
@@ -76,7 +97,8 @@ def _unlabelled_values(
             tokens[token_index : token_index + _Patterns.name_token_count],
         )
         if not any(
-            token.casefold() in name_label_tokens for token in candidate_tokens
+            token.casefold() in name_label_tokens | _HEADER_WORDS
+            for token in candidate_tokens
         )
     }
 

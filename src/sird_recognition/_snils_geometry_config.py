@@ -16,6 +16,7 @@ class _GeometryConfig:
     green_min_area_ratio = 0.05
     green_epsilon_ratio = 0.04
     green_rectangularity = 0.45
+    green_relative_floor = 4
     max_side_ratio = 8
     luminance_threshold_offset = 1
     luminance_close_kernel = 21

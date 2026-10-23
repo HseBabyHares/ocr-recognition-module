@@ -10,6 +10,10 @@ from sird_recognition._snils_geometry_config import (
     quad_sides,
     valid_sides,
 )
+from sird_recognition._snils_geometry_mask import (
+    hsv_green_mask,
+    relative_green_mask,
+)
 
 
 def _contour_quad(
@@ -64,38 +68,20 @@ def _green_candidate(
     )
 
 
-def _green_mask(frame: np.ndarray) -> np.ndarray:
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(
-        hsv, _GeometryConfig.green_hsv_low, _GeometryConfig.green_hsv_high
-    )
-    mask = cv2.morphologyEx(
-        mask,
-        cv2.MORPH_OPEN,
-        np.ones(
-            (
-                _GeometryConfig.morph_open_kernel,
-                _GeometryConfig.morph_open_kernel,
-            ),
-            np.uint8,
-        ),
-    )
-    return cv2.morphologyEx(
-        mask,
-        cv2.MORPH_CLOSE,
-        np.ones(
-            (
-                _GeometryConfig.morph_close_kernel,
-                _GeometryConfig.morph_close_kernel,
-            ),
-            np.uint8,
-        ),
-    )
-
-
 def green_candidates(frame: np.ndarray) -> list[tuple[float, np.ndarray]]:
-    """Return usable green document candidates in contour order."""
-    mask = _green_mask(frame)
+    """Return usable green document candidates in contour order.
+
+    The relative mask goes first: under a color cast the HSV mask also
+    accepts white paper and returns the whole page.
+    """
+    return _mask_candidates(frame, relative_green_mask(frame)) or (
+        _mask_candidates(frame, hsv_green_mask(frame))
+    )
+
+
+def _mask_candidates(
+    frame: np.ndarray, mask: np.ndarray
+) -> list[tuple[float, np.ndarray]]:
     image_area = float(frame.shape[0] * frame.shape[1])
     contours, _ = cv2.findContours(
         mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE

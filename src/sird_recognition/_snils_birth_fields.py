@@ -12,7 +12,11 @@ from sird_recognition._snils_labels import (
     has_label,
     normalized_line,
 )
-from sird_recognition._snils_text import birth_place_labels, label_attachment
+from sird_recognition._snils_text import (
+    birth_place_labels,
+    label_attachment,
+    label_end,
+)
 
 
 def _line_candidates(
@@ -22,9 +26,10 @@ def _line_candidates(
     next_index = line_index + 1
     if next_index < len(lines):
         following_line = lines[next_index]
-        if not has_label(
-            following_line, labels.registration_labels
-        ) or has_label(following_line, labels.birth_labels):
+        if (
+            not has_label(following_line, labels.registration_labels)
+            or label_end(following_line, labels.birth_labels) is not None
+        ):
             candidates.append(following_line)
     return candidates
 
@@ -34,7 +39,7 @@ def _line_birth_values(
 ) -> set[str]:
     birth_values: set[str] = set()
     for line_index, line in enumerate(lines):
-        if not has_label(line, labels.birth_labels):
+        if label_end(line, labels.birth_labels) is None:
             continue
         for candidate in _line_candidates(lines, line_index, labels):
             birth_values.update(read(candidate, labels.months_genitive))

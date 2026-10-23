@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from difflib import SequenceMatcher
 
 from sird_recognition._snils_labels import _Patterns
+
+_WORD_RATIO = 0.75
 
 
 def _contains_sequence(
@@ -41,11 +44,45 @@ def birth_place_labels(labels: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(sorted(place_labels, key=len, reverse=True))
 
 
-def label_attachment(line: str, labels: Iterable[str]) -> str | None:
-    """Return the text following the longest matching label."""
+def _misses(words: list[str], label_words: list[str]) -> int:
+    # A ratio of 0.75 allows one OCR error in four letters.
+    return sum(
+        SequenceMatcher(None, word, label_word).ratio() < _WORD_RATIO
+        for word, label_word in zip(words, label_words, strict=True)
+    )
+
+
+def _window_end(folded: str, label: str) -> int | None:
+    words = list(_Patterns.word.finditer(folded))
+    label_words = _Patterns.word.findall(label)
+    # OCR damage can hide one word of a long label, never of a short one.
+    allowed_misses = (len(label_words) - 1) // 2
+    for start in range(len(words) - len(label_words) + 1):
+        window = words[start : start + len(label_words)]
+        if (
+            _misses([word.group() for word in window], label_words)
+            <= allowed_misses
+        ):
+            return window[-1].end()
+    return None
+
+
+def label_end(line: str, labels: Iterable[str]) -> int | None:
+    """Return the end of the longest label, with OCR errors in its words."""
     folded = line.casefold()
     for label in sorted(labels, key=len, reverse=True):
         position = folded.find(label)
-        if position >= 0:
-            return line[position + len(label) :]
+        end = (
+            position + len(label)
+            if position >= 0
+            else _window_end(folded, label)
+        )
+        if end is not None:
+            return end
     return None
+
+
+def label_attachment(line: str, labels: Iterable[str]) -> str | None:
+    """Return the text following the longest matching label."""
+    end = label_end(line, labels)
+    return None if end is None else line[end:]

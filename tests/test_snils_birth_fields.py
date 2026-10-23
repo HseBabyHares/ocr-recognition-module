@@ -15,11 +15,9 @@ def test_damaged_year_word_not_a_place() -> None:
     damaged = "Дата и место рождения 18 февраля 1960 Ода\nOMCK (e"
     clean = "Дата и место рождения 18 февраля 1960 года\nКАЗАНЬ"
     assert optional_unique_birth_place([damaged, clean]) == _PLACE
-
-
-def test_dust_before_year_word_not_a_place() -> None:
-    text = "Дата и место рождения 18 февраля 1960 a годах\nКАЗАНЬ"
-    assert optional_unique_birth_place([text]) == _PLACE
+    # One-letter OCR dust can come before the year word.
+    dusty = "Дата и место рождения 18 февраля 1960 a годах\nКАЗАНЬ"
+    assert optional_unique_birth_place([dusty]) == _PLACE
 
 
 def test_place_after_comma_kept() -> None:
@@ -41,3 +39,11 @@ def test_damaged_birth_label_keeps_fields() -> None:
 
 def test_registration_date_is_no_birth_date() -> None:
     assert not birth_date_candidates(["Дата регистрации 07.09.1990"])
+
+
+def test_majority_of_variants_gives_place() -> None:
+    clean = "Дата и место рождения 18 февраля 1960 года\nКАЗАНЬ"
+    noisy = "Дата и место рождения 18 февраля 1960 года\nКАЗАНБ"
+    assert optional_unique_birth_place([clean, clean, noisy, ""]) == _PLACE
+    # A tie between two variants gives no place.
+    assert optional_unique_birth_place([clean, noisy]) is None

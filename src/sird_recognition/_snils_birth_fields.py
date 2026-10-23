@@ -119,9 +119,17 @@ def _place_values(texts: Iterable[str], labels: OcrLabels) -> set[str]:
 
 
 def optional_unique_birth_place(texts: Iterable[str]) -> str | None:
-    """Extract a unique labelled birth place, when present."""
+    """Extract the labelled birth place most OCR variants agree on."""
     labels = load_ocr_labels()
     if labels is None:
         return None
-    place_values = _place_values(texts, labels)
-    return next(iter(place_values)) if len(place_values) == 1 else None
+    per_text = [_place_values((text,), labels) for text in texts]
+    voters = [found for found in per_text if found]
+    # One noisy variant must not cancel the place the others agree on.
+    majority = {
+        place_value
+        for found in voters
+        for place_value in found
+        if 2 * sum(place_value in other for other in voters) > len(voters)
+    }
+    return next(iter(majority)) if len(majority) == 1 else None

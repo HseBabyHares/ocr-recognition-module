@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import itertools
+
 import cv2
 import numpy as np
 
 from sird_recognition._snils_checks import ServiceConfig
 from sird_recognition._snils_decode import decode_image
-from sird_recognition._snils_geometry import green_document_quad
+from sird_recognition._snils_geometry import (
+    green_document_quad,
+    luminance_quad,
+)
 from sird_recognition._snils_geometry_warp import MIN_LONG_SIDE, target_size
 from sird_recognition._snils_types import ImageLimits
 
@@ -25,6 +30,8 @@ _FADED_CARD_POINTS = (
 )
 # A light green card blended 65% toward white: HSV saturation is below 20.
 _FADED_CARD_COLOR = (225, 239, 230)
+# A gray copy of the card keeps no green at all.
+_GRAY_COPY_COLOR = (215, 215, 215)
 # Neutral, warm, and cool white balance as BGR channel gains.
 # Gains stay at or below 1: a cast must not clip the paper and the card.
 _NEUTRAL_CAST = (1.0, 1.0, 1.0)
@@ -33,6 +40,10 @@ _COOL_CAST = (1.0, 0.87, 0.74)
 _COLOR_CASTS = (_NEUTRAL_CAST, _WARM_CAST, _COOL_CAST)
 _FADED_CARD_MIN_RATIO = 0.06
 _FADED_CARD_MAX_RATIO = 0.08
+_CARD_FINDERS = (
+    (green_document_quad, _FADED_CARD_COLOR),
+    (luminance_quad, _GRAY_COPY_COLOR),
+)
 
 
 def _limits(max_pixels: int = ServiceConfig.max_pixels) -> ImageLimits:
@@ -51,12 +62,14 @@ def _phone_photo_bytes() -> bytes:
     return cv2.imencode(".jpg", image)[1].tobytes()
 
 
-def _faded_card_page(gains: tuple[float, float, float]) -> np.ndarray:
+def _faded_card_page(
+    gains: tuple[float, float, float], color: tuple[int, int, int]
+) -> np.ndarray:
     page = np.full(
         (_PAGE_HEIGHT, _PAGE_WIDTH, _CHANNELS), _PAGE_WHITE, dtype=np.uint8
     )
     points = np.array(_FADED_CARD_POINTS, dtype=np.int32)
-    cv2.fillPoly(page, [points], _FADED_CARD_COLOR)
+    cv2.fillPoly(page, [points], color)
     cast_page = page.astype(np.float32) * np.array(gains, np.float32)
     return np.clip(cast_page, 0, _PAGE_WHITE).astype(np.uint8)
 
@@ -72,9 +85,11 @@ def test_raster_above_pixel_limit_is_reduced() -> None:
     assert decoded.shape[0] > decoded.shape[1]
 
 
-def test_faded_green_card_under_color_cast() -> None:
-    for gains in _COLOR_CASTS:
-        quad = green_document_quad(_faded_card_page(gains))
+def test_faded_card_under_color_cast() -> None:
+    for (find_quad, color), gains in itertools.product(
+        _CARD_FINDERS, _COLOR_CASTS
+    ):
+        quad = find_quad(_faded_card_page(gains, color))
         assert quad is not None
         ratio = cv2.contourArea(quad) / (_PAGE_WIDTH * _PAGE_HEIGHT)
         assert _FADED_CARD_MIN_RATIO <= ratio <= _FADED_CARD_MAX_RATIO

@@ -21,6 +21,7 @@ class _GeometryConfig:
     luminance_threshold_offset = 1
     luminance_close_kernel = 21
     luminance_min_area_ratio = 0.2
+    faded_card_offset = 20
     canny_low = 50
     canny_high = 150
     green_contour_limit = 20

@@ -10,7 +10,11 @@ from sird_recognition._snils_geometry_config import (
     quad_sides,
     valid_sides,
 )
-from sird_recognition._snils_geometry_green import _contour_quad
+from sird_recognition._snils_geometry_green import (
+    _contour_quad,
+    _mask_candidates,
+)
+from sird_recognition._snils_geometry_mask import _cleaned_mask
 
 
 def _luminance_mask(frame: np.ndarray) -> np.ndarray:
@@ -74,3 +78,17 @@ def luminance_candidates(frame: np.ndarray) -> list[np.ndarray]:
         for candidate in (_luminance_candidate(contour, image_area),)
         if candidate is not None
     ]
+
+
+def faded_card_candidates(
+    frame: np.ndarray,
+) -> list[tuple[float, np.ndarray]]:
+    """Return card candidates darker than the paper around them.
+
+    shortcut: the frame median is the paper only while the card covers
+    less than half of the frame; a close-up of a gray copy is not found.
+    """
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    paper = int(np.median(gray)) - _GeometryConfig.faded_card_offset
+    mask = np.where(gray < paper, _GeometryConfig.threshold_max_value, 0)
+    return _mask_candidates(frame, _cleaned_mask(mask.astype(np.uint8)))

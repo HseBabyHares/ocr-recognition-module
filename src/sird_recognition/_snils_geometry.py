@@ -8,7 +8,10 @@ import numpy as np
 from sird_recognition._snils_geometry_config import _GeometryConfig
 from sird_recognition._snils_geometry_document import document_candidates
 from sird_recognition._snils_geometry_green import green_candidates
-from sird_recognition._snils_geometry_luminance import luminance_candidates
+from sird_recognition._snils_geometry_luminance import (
+    faded_card_candidates,
+    luminance_candidates,
+)
 from sird_recognition._snils_geometry_warp import (
     corner_points,
     target_size,
@@ -57,9 +60,12 @@ def green_document_quad(frame: np.ndarray) -> np.ndarray | None:
 
 
 def luminance_quad(frame: np.ndarray) -> np.ndarray | None:
-    """Find a bright document fallback for non-green forms."""
+    """Find a bright document or a card darker than the paper."""
     candidates = luminance_candidates(frame)
-    return candidates[0] if candidates else None
+    if candidates:
+        return candidates[0]
+    # A gray copy of the green card has no color for the green finder.
+    return _best_candidate(faded_card_candidates(frame))
 
 
 def document_quad(frame: np.ndarray) -> np.ndarray | None:

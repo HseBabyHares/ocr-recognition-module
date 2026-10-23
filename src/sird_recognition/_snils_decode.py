@@ -45,14 +45,39 @@ def _resize_frame(frame: np.ndarray, limits: ImageLimits) -> np.ndarray:
     )
 
 
-def decode_image(encoded: bytes, limits: ImageLimits) -> np.ndarray:
-    """Decode a color raster and apply pixel and side limits."""
-    payload = np.frombuffer(encoded, dtype=np.uint8)
-    frame = cv2.imdecode(payload, cv2.IMREAD_COLOR)
-    if frame is None or frame.ndim != 3:
+_REDUCED_DECODES = (
+    (1, cv2.IMREAD_COLOR),
+    (2, cv2.IMREAD_REDUCED_COLOR_2),
+    (4, cv2.IMREAD_REDUCED_COLOR_4),
+    (8, cv2.IMREAD_REDUCED_COLOR_8),
+)
+_PREVIEW_FACTOR, _PREVIEW_FLAG = _REDUCED_DECODES[-1]
+_COLOR_NDIM = 3
+
+
+def _color_raster(payload: np.ndarray, flag: int) -> np.ndarray:
+    frame = cv2.imdecode(payload, flag)
+    if frame is None or frame.ndim != _COLOR_NDIM or not frame.size:
         raise ValueError("image is not a decodable color raster")
+    return frame
+
+
+def _decode_flag(payload: np.ndarray, max_pixels: int) -> int:
+    height, width = _color_raster(payload, _PREVIEW_FLAG).shape[:2]
+    # The 1/8 preview rounds sides up, so the estimate is never too small.
+    full_pixels = height * width * _PREVIEW_FACTOR * _PREVIEW_FACTOR
+    for factor, flag in _REDUCED_DECODES:
+        if full_pixels // (factor * factor) <= max_pixels:
+            return flag
+    raise ValueError("image exceeds pixel limit")
+
+
+def decode_image(encoded: bytes, limits: ImageLimits) -> np.ndarray:
+    """Decode a color raster at the largest scale within the pixel limit."""
+    payload = np.frombuffer(encoded, dtype=np.uint8)
+    frame = _color_raster(payload, _decode_flag(payload, limits.max_pixels))
     height, width = frame.shape[:2]
-    if height <= 0 or width <= 0 or height * width > limits.max_pixels:
+    if height * width > limits.max_pixels:
         raise ValueError("image exceeds pixel limit")
     return _resize_frame(frame, limits)
 

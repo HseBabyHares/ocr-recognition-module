@@ -13,8 +13,9 @@ class ServiceConfig:
     bytes_per_megabyte = 1024 * 1024
     max_input_megabytes = 15
     max_input_bytes = max_input_megabytes * bytes_per_megabyte
-    max_pixels = 12_000_000
     max_side = 4096
+    # 4096 x 4096: a 12 MP phone photo stays at full resolution.
+    max_pixels = max_side * max_side
     default_max_variants = 5
     checksum_digit_count = 9
     checksum_length = 11

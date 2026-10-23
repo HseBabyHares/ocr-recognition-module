@@ -69,9 +69,10 @@ def _same_line_place(attached: str) -> str:
     )
     place_text = attached[date_end:].strip()
     # After the date a comma starts the place; without it the first word
-    # is "года" or its OCR damage, such as "Ода".
+    # is "года" or its OCR damage, such as "Ода". One-letter OCR dust can
+    # come before it.
     if date_end and not place_text.startswith(","):
-        place_text = "".join(place_text.split(maxsplit=1)[1:])
+        place_text = _Patterns.year_word.sub("", place_text, count=1)
     return place_text.strip(" \t:;,.-")
 
 

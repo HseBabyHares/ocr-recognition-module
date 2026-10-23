@@ -18,6 +18,8 @@ class Patterns:
         re.UNICODE,
     )
     year = re.compile(r"(?<!\d)\d{4}(?!\d)")
+    # One-letter OCR dust, then the word "года" after the year.
+    year_word = re.compile(r"^(?:\S\s+)*\S{2,}")
     place = re.compile(
         r"(?=.*[а-яё]{2})[а-яё]+(?:[-.,\s]+[а-яё]+)*\.?", re.IGNORECASE
     )

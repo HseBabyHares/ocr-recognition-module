@@ -3,16 +3,23 @@ from sird_recognition._snils_birth_fields import (
     optional_unique_birth_place,
 )
 
+_PLACE = "КАЗАНЬ"
+
 
 def test_card_place_on_line_after_date() -> None:
     text = "Дата и место рождения 20 де Кабря 1993 года\nКАЗАНЬ\nПол Женский"
-    assert optional_unique_birth_place([text]) == "КАЗАНЬ"
+    assert optional_unique_birth_place([text]) == _PLACE
 
 
 def test_damaged_year_word_not_a_place() -> None:
     damaged = "Дата и место рождения 18 февраля 1960 Ода\nOMCK (e"
     clean = "Дата и место рождения 18 февраля 1960 года\nКАЗАНЬ"
-    assert optional_unique_birth_place([damaged, clean]) == "КАЗАНЬ"
+    assert optional_unique_birth_place([damaged, clean]) == _PLACE
+
+
+def test_dust_before_year_word_not_a_place() -> None:
+    text = "Дата и место рождения 18 февраля 1960 a годах\nКАЗАНЬ"
+    assert optional_unique_birth_place([text]) == _PLACE
 
 
 def test_place_after_comma_kept() -> None:
@@ -28,7 +35,7 @@ def test_empty_place_row_skips_sex_row() -> None:
 def test_damaged_birth_label_keeps_fields() -> None:
     # One wrong letter in "рождения" and a lost "дата" word.
     text = "Лаиа и место рожденця 20 декабря 1993 года\nКАЗАНЬ\nПол Женский"
-    assert optional_unique_birth_place([text]) == "КАЗАНЬ"
+    assert optional_unique_birth_place([text]) == _PLACE
     assert birth_date_candidates([text]) == {"1993-12-20"}
 
 

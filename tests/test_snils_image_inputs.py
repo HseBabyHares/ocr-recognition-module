@@ -6,6 +6,7 @@ import numpy as np
 from sird_recognition._snils_checks import ServiceConfig
 from sird_recognition._snils_decode import decode_image
 from sird_recognition._snils_geometry import green_document_quad
+from sird_recognition._snils_geometry_warp import MIN_LONG_SIDE, target_size
 from sird_recognition._snils_types import ImageLimits
 
 _CHANNELS = 3
@@ -77,3 +78,13 @@ def test_faded_green_card_under_color_cast() -> None:
         assert quad is not None
         ratio = cv2.contourArea(quad) / (_PAGE_WIDTH * _PAGE_HEIGHT)
         assert _FADED_CARD_MIN_RATIO <= ratio <= _FADED_CARD_MAX_RATIO
+
+
+def test_small_card_warp_is_upscaled() -> None:
+    ordered = np.array(_FADED_CARD_POINTS, dtype=np.float32)
+
+    width, height = target_size(ordered, _limits())
+    reduced = target_size(ordered, _limits(_REDUCED_MAX_PIXELS))
+
+    assert max(width, height) >= MIN_LONG_SIDE
+    assert reduced[0] * reduced[1] <= _REDUCED_MAX_PIXELS

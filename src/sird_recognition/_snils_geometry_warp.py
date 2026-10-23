@@ -9,6 +9,10 @@ import numpy as np
 
 from sird_recognition._snils_types import ImageLimits
 
+# A card that fills a small part of the frame gives glyphs too small for
+# Tesseract; 1600 px on the long side read best on 100-150 dpi page scans.
+MIN_LONG_SIDE = 1600
+
 
 def corner_points(
     points: np.ndarray,
@@ -24,6 +28,11 @@ def corner_points(
     )
 
 
+def _upscaled(width: float, height: float) -> tuple[float, float]:
+    upscale = max(1.0, MIN_LONG_SIDE / max(width, height, 1.0))
+    return width * upscale, height * upscale
+
+
 def target_size(ordered: np.ndarray, limits: ImageLimits) -> tuple[int, int]:
     """Calculate bounded output dimensions for an ordered quadrilateral."""
     width = max(
@@ -34,6 +43,7 @@ def target_size(ordered: np.ndarray, limits: ImageLimits) -> tuple[int, int]:
         np.linalg.norm(ordered[3] - ordered[0]),
         np.linalg.norm(ordered[2] - ordered[1]),
     )
+    width, height = _upscaled(width, height)
     target_width = min(limits.max_side, max(1, int(width)))
     target_height = min(limits.max_side, max(1, int(height)))
     if target_width * target_height > limits.max_pixels:

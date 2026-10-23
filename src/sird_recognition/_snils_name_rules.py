@@ -96,7 +96,11 @@ def _unlabelled_values(
         for candidate_tokens in (
             tokens[token_index : token_index + _Patterns.name_token_count],
         )
-        if not any(
+        # A printed name is in upper case or in title case.
+        if all(
+            token.isupper() or token.istitle() for token in candidate_tokens
+        )
+        and not any(
             token.casefold() in name_label_tokens | _HEADER_WORDS
             for token in candidate_tokens
         )

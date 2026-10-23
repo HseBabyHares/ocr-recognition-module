@@ -4,6 +4,7 @@ from sird_recognition._snils_name_rules import name_candidates
 _CARD = "Ф.И.О. СИДОРОВ\nПЕТР\n{}\nДата и место рождения 23 января 2004"
 _GOOD = _CARD.format("ПЕТРОВИЧ")
 _NOISY = _CARD.format("ПЕТРОВИЧЬ")
+_NAME = "СИДОРОВ ПЕТР ПЕТРОВИЧ"
 
 
 def test_dotted_label_outranks_header_words() -> None:
@@ -16,7 +17,7 @@ def test_dotted_label_outranks_header_words() -> None:
         "Дата и место рождения 23 января 2004"
     )
 
-    assert name_candidates([text]) == {"СИДОРОВ ПЕТР ПЕТРОВИЧ"}
+    assert name_candidates([text]) == {_NAME}
 
 
 def test_unlabelled_header_words_are_no_name() -> None:
@@ -28,7 +29,13 @@ def test_unlabelled_header_words_are_no_name() -> None:
         "Пол Мужской ГОР\n"
     )
 
-    assert name_candidates([text]) == {"СИДОРОВ ПЕТР ПЕТРОВИЧ"}
+    assert name_candidates([text]) == {_NAME}
+
+
+def test_mixed_case_run_is_no_name() -> None:
+    text = "ВЕР то ко\nВеРНО ГОР ТО\nСИДОРОВ ПЕТР ПЕТРОВИЧ"
+
+    assert name_candidates([text]) == {_NAME}
 
 
 def test_separate_name_rows_resolved() -> None:
@@ -59,7 +66,7 @@ def test_majority_of_variants_resolves_rule_name() -> None:
 
     name, _ = resolve_name(texts, ())
 
-    assert name == "СИДОРОВ ПЕТР ПЕТРОВИЧ"
+    assert name == _NAME
 
 
 def test_tied_variants_stay_ambiguous() -> None:

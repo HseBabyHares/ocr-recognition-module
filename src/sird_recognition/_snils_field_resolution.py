@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from sird_recognition._snils_dates import text_date_values
 from sird_recognition._snils_field_candidates import (
     birth_date_candidates,
     candidate_birth_dates,
@@ -37,8 +38,15 @@ def resolve_birth_date(
     bound_candidates: tuple[CandidateSpan, ...],
 ) -> tuple[str | None, set[str]]:
     """Resolve a unique birth date and retain ambiguity evidence."""
-    candidates = birth_date_candidates(texts)
-    candidates.update(candidate_birth_dates(bound_candidates))
+    # The card writes the birth date with a month name and the registration
+    # date with digits, so a month-name date excludes every numeric date.
+    candidates = birth_date_candidates(texts, text_date_values)
+    candidates.update(
+        candidate_birth_dates(bound_candidates, text_date_values)
+    )
+    if not candidates:
+        candidates = birth_date_candidates(texts)
+        candidates.update(candidate_birth_dates(bound_candidates))
     birth_date = next(iter(candidates)) if len(candidates) == 1 else None
     return birth_date, candidates
 

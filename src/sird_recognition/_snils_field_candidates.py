@@ -10,7 +10,7 @@ from sird_recognition._snils_birth_fields import (
 from sird_recognition._snils_birth_fields import (
     optional_unique_birth_place as _optional_unique_birth_place,
 )
-from sird_recognition._snils_dates import date_values
+from sird_recognition._snils_dates import DateReader, date_values
 from sird_recognition._snils_label_loader import load_ocr_labels
 from sird_recognition._snils_labels import _Patterns
 from sird_recognition.candidate_contracts import CandidateField, CandidateSpan
@@ -29,9 +29,11 @@ def candidate_labels() -> dict[str, Iterable[str]]:
     }
 
 
-def birth_date_candidates(texts: Iterable[str]) -> set[str]:
+def birth_date_candidates(
+    texts: Iterable[str], read: DateReader = date_values
+) -> set[str]:
     """Return labelled birth-date candidates."""
-    return _birth_date_candidates(texts)
+    return _birth_date_candidates(texts, read)
 
 
 def optional_unique_birth_place(texts: Iterable[str]) -> str | None:
@@ -61,7 +63,9 @@ def candidate_values(
     }
 
 
-def candidate_birth_dates(candidates: Iterable[CandidateSpan]) -> set[str]:
+def candidate_birth_dates(
+    candidates: Iterable[CandidateSpan], read: DateReader = date_values
+) -> set[str]:
     """Extract valid birth dates from model candidates."""
     labels = load_ocr_labels()
     if labels is None:
@@ -70,7 +74,5 @@ def candidate_birth_dates(candidates: Iterable[CandidateSpan]) -> set[str]:
         date_candidate
         for candidate in candidates
         if candidate.field is CandidateField.BIRTH_DATE
-        for date_candidate in date_values(
-            candidate.raw_text, labels.months_genitive
-        )
+        for date_candidate in read(candidate.raw_text, labels.months_genitive)
     }

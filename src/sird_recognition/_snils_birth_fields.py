@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from sird_recognition._snils_dates import date_values
+from sird_recognition._snils_dates import DateReader, date_values
 from sird_recognition._snils_label_loader import load_ocr_labels
 from sird_recognition._snils_labels import (
     OcrLabels,
@@ -29,17 +29,21 @@ def _line_candidates(
     return candidates
 
 
-def _line_birth_values(lines: list[str], labels: OcrLabels) -> set[str]:
+def _line_birth_values(
+    lines: list[str], labels: OcrLabels, read: DateReader
+) -> set[str]:
     birth_values: set[str] = set()
     for line_index, line in enumerate(lines):
         if not has_label(line, labels.birth_labels):
             continue
         for candidate in _line_candidates(lines, line_index, labels):
-            birth_values.update(date_values(candidate, labels.months_genitive))
+            birth_values.update(read(candidate, labels.months_genitive))
     return birth_values
 
 
-def birth_date_candidates(texts: Iterable[str]) -> set[str]:
+def birth_date_candidates(
+    texts: Iterable[str], read: DateReader = date_values
+) -> set[str]:
     """Extract dates from lines labelled as a birth date."""
     labels = load_ocr_labels()
     if labels is None:
@@ -48,7 +52,7 @@ def birth_date_candidates(texts: Iterable[str]) -> set[str]:
         date_value
         for text in texts
         for date_value in _line_birth_values(
-            text.splitlines() or [text], labels
+            text.splitlines() or [text], labels, read
         )
     }
 

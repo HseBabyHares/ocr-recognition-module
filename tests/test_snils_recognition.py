@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import cv2
 import numpy as np
 
+from sird_recognition._snils_field_resolution import resolve_birth_date
 from sird_recognition.candidate_extraction import (
     CandidateField,
     CandidateSpan,
@@ -574,3 +575,23 @@ class TestDateExtraction(_TestHelpers):
         assert service._birth_date_candidates(
             ("Дата рождения:\n3 апреля 1980",)
         ) == {"1980-04-03"}
+
+    def test_text_month_date_wins(self) -> None:
+        text = (
+            "Дата и место рождения 3 апреля 1980 года "
+            "Дата регистрации 05.06.2001"
+        )
+        assert resolve_birth_date((text,), ()) == (
+            _VALID_BIRTH_DATE,
+            {_VALID_BIRTH_DATE},
+        )
+
+    def test_numeric_span_loses(self) -> None:
+        text = "Дата рождения 3 апреля 1980 года\n05.06.2001"
+        span = self.span(text, CandidateField.BIRTH_DATE, "05.06.2001")
+        assert resolve_birth_date((text,), (span,))[0] == _VALID_BIRTH_DATE
+
+    def test_numeric_date_without_month(self) -> None:
+        assert resolve_birth_date(("Дата рождения 03.04.1980",), ())[0] == (
+            _VALID_BIRTH_DATE
+        )

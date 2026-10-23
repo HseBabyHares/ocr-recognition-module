@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import date
 
 from sird_recognition._snils_date_matches import (
@@ -9,6 +10,9 @@ from sird_recognition._snils_date_matches import (
     text_match_date,
 )
 from sird_recognition._snils_labels import _Patterns
+
+_MonthIndex = dict[str, int]
+DateReader = Callable[[str, _MonthIndex], set[str]]
 
 
 def parsed_date(day: str, month: int | str, year: str) -> str | None:
